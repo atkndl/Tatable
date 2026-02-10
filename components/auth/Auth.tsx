@@ -66,7 +66,7 @@ export default function Auth() {
                                     id="email"
                                     type="email"
                                     placeholder="ornek@email.com"
-                                    className="pl-10 bg-white border-slate-200"
+                                    className="pl-10 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required

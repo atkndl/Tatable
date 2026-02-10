@@ -88,9 +88,9 @@ export function ShiftList() {
                                 {editingId === shift.id ? (
                                     // Edit Mode Row
                                     <>
-                                        <td className="px-2 py-4"><Input type="date" value={editForm.date} onChange={(e) => setEditForm({ ...editForm, date: e.target.value })} className="h-8 w-32" /></td>
+                                        <td className="px-2 py-4"><Input type="date" value={editForm.date} onChange={(e) => setEditForm({ ...editForm, date: e.target.value })} className="h-8 w-32 bg-white text-slate-900 border-slate-200" /></td>
                                         <td className="px-2 py-4">
-                                            <Select value={editForm.branch} onChange={(e) => setEditForm({ ...editForm, branch: e.target.value as Branch })} className="h-8">
+                                            <Select value={editForm.branch} onChange={(e) => setEditForm({ ...editForm, branch: e.target.value as Branch })} className="h-8 bg-white text-slate-900 border-slate-200">
                                                 <option value="Ümraniye">Ümraniye</option>
                                                 <option value="Küçükçekmece">Küçükçekmece</option>
                                                 <option value="Fatih">Fatih</option>
@@ -98,7 +98,7 @@ export function ShiftList() {
                                             </Select>
                                         </td>
                                         <td className="px-2 py-4">
-                                            <Select value={editForm.level} onChange={(e) => setEditForm({ ...editForm, level: e.target.value as Level })} className="h-8">
+                                            <Select value={editForm.level} onChange={(e) => setEditForm({ ...editForm, level: e.target.value as Level })} className="h-8 bg-white text-slate-900 border-slate-200">
                                                 <option value="1">1</option>
                                                 <option value="3">3</option>
                                                 <option value="E">E</option>
@@ -107,12 +107,12 @@ export function ShiftList() {
                                             </Select>
                                         </td>
                                         <td className="px-2 py-4">
-                                            <Select value={editForm.type} onChange={(e) => setEditForm({ ...editForm, type: e.target.value as ShiftType })} className="h-8">
+                                            <Select value={editForm.type} onChange={(e) => setEditForm({ ...editForm, type: e.target.value as ShiftType })} className="h-8 bg-white text-slate-900 border-slate-200">
                                                 <option value="Tek">Tek</option>
                                                 <option value="Çift">Çift</option>
                                             </Select>
                                         </td>
-                                        <td className="px-2 py-4"><Input type="number" value={editForm.hours} onChange={(e) => setEditForm({ ...editForm, hours: Number(e.target.value) })} className="h-8 w-16 text-right" /></td>
+                                        <td className="px-2 py-4"><Input type="number" value={editForm.hours} onChange={(e) => setEditForm({ ...editForm, hours: Number(e.target.value) })} className="h-8 w-16 text-right bg-white text-slate-900 border-slate-200" /></td>
                                         <td className="px-6 py-4 text-right text-slate-400">-</td>
                                         <td className="px-2 py-4 text-center flex justify-center gap-1">
                                             <Button size="icon" variant="ghost" className="h-8 w-8 text-emerald-600 hover:bg-emerald-50" onClick={handleSave}><Check className="w-4 h-4" /></Button>
