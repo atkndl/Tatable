@@ -58,6 +58,17 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
         // 1. Fetch Shifts
         const { data: shiftsData } = await supabase.from('shifts').select('*').order('date', { ascending: false });
 
+        const mappedShifts: Shift[] = (shiftsData?.map((s: any) => ({
+            id: s.id,
+            date: s.date,
+            branch: s.branch,
+            level: s.level,
+            type: s.type,
+            hours: Number(s.hours),
+            hourlyRate: Number(s.hourly_rate), // Map from DB snake_case
+            totalSalary: Number(s.total_salary) // Map from DB snake_case
+        })) as Shift[]) || [];
+
         // 2. Fetch Templates
         const { data: templatesData } = await supabase.from('shift_templates').select('*');
 
@@ -65,7 +76,7 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
         const { data: salariesData } = await supabase.from('actual_salaries').select('*');
         const salariesMap: Record<string, number> = {};
         salariesData?.forEach((item: any) => {
-            salariesMap[item.month_key] = item.amount;
+            salariesMap[item.month_key] = Number(item.amount);
         });
 
         // 4. Fetch Attendance Goals
@@ -79,7 +90,7 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
         });
 
         set({
-            shifts: (shiftsData as unknown as Shift[]) || [],
+            shifts: mappedShifts,
             templates: (templatesData as unknown as ShiftTemplate[]) || [],
             actualSalaries: salariesMap,
             attendanceGoals: goalsMap,
