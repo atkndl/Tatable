@@ -125,8 +125,8 @@ export default function Auth() {
 
     if (mode === 'profiles') {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 p-4 animate-fade-in">
-                <h1 className="text-3xl md:text-5xl font-bold text-white mb-12 tracking-tight">Kim giriş yapıyor?</h1>
+            <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4 animate-fade-in">
+                <h1 className="text-3xl md:text-5xl font-bold text-slate-900 mb-12 tracking-tight">Kim giriş yapıyor?</h1>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 max-w-4xl w-full px-4">
                     {PROFILES.map((profile) => (
@@ -142,7 +142,7 @@ export default function Auth() {
                             )}>
                                 {profile.name.charAt(0)}
                             </div>
-                            <span className="text-slate-400 group-hover:text-white text-lg font-medium transition-colors text-center">
+                            <span className="text-slate-500 group-hover:text-slate-900 text-lg font-medium transition-colors text-center">
                                 {profile.name}
                             </span>
                         </button>
