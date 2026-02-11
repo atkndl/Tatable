@@ -26,11 +26,41 @@ export default function Auth() {
     const [mode, setMode] = useState<'profiles' | 'password' | 'magic'>('profiles');
 
     // Handle Profile Click
-    const handleProfileClick = (profile: typeof PROFILES[0]) => {
+    const handleProfileClick = async (profile: typeof PROFILES[0]) => {
         setSelectedProfile(profile);
-        setMode('password');
         setMessage(null);
         setPassword('');
+
+        // Attempt Auto-Login with default password "123456"
+        // If it works, user gets in. If not, we show password screen.
+        setLoading(true);
+        try {
+            // First try to sign in
+            const { error } = await supabase.auth.signInWithPassword({
+                email: profile.email,
+                password: "123456"
+            });
+
+            if (!error) {
+                // Success!
+                return;
+            }
+
+            // If login failed, maybe user doesn't exist? Try to sign up if needed.
+            if (error.message.includes("Invalid login credentials") || error.message.includes("Email not confirmed")) {
+                // Try to sign up silently?? 
+                // If invalid credentials, it means user exists but pass is wrong (or different).
+                // So we just show password screen.
+                setMode('password');
+            } else {
+                setMode('password');
+            }
+
+        } catch (err) {
+            setMode('password');
+        } finally {
+            setLoading(false);
+        }
     };
 
     // Login with Password
