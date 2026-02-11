@@ -264,9 +264,12 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
 
                 const currentGoal = attendanceGoals[key] || { target: 0, days: {} };
                 // Map shift status to attendance status
-                const attendanceStatus = shiftData.status === 'planned' ? 'planned' : 'present';
+                const attendanceStatus: 'planned' | 'present' = shiftData.status === 'planned' ? 'planned' : 'present';
 
-                const newDays = { ...currentGoal.days, [day]: attendanceStatus };
+                const newDays: Record<number, 'present' | 'absent' | 'neutral' | 'planned'> = {
+                    ...(currentGoal.days as Record<number, 'present' | 'absent' | 'neutral' | 'planned'>),
+                    [day]: attendanceStatus
+                };
 
                 // Update Local
                 set((state) => ({
@@ -309,7 +312,9 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
 
                 const currentGoal = attendanceGoals[key];
                 if (currentGoal && user) {
-                    const newDays = { ...currentGoal.days };
+                    const newDays: Record<number, 'present' | 'absent' | 'neutral' | 'planned'> = {
+                        ...(currentGoal.days as Record<number, 'present' | 'absent' | 'neutral' | 'planned'>)
+                    };
                     delete newDays[day]; // or set to 'neutral'
                     // Deleting key might default to neutral/empty in UI, which is safer?
                     // UI uses: goal.days[day] || 'neutral'. So deleting is fine.
