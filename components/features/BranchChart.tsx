@@ -31,8 +31,8 @@ export function BranchChart() {
 
     const COLORS = [
         '#f97316', // Ümraniye (Blue-600)
-        '#0b4a8f', // Eğitim (Dark Blue)
-        '#db2777', // Fatih (Pink-600)
+        '#db2777', // Fatih
+        '#0b4a8f', // Eğitim
         '#bc16f9ff', // Küçükçekmece (Orange-500)
         '#10b981', // Other (Emerald-500)
     ];
