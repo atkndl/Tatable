@@ -16,7 +16,7 @@ export function AddShiftForm() {
     const addTemplate = useShiftStore((state) => state.addTemplate);
     const removeTemplate = useShiftStore((state) => state.removeTemplate);
 
-    const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+
     const [dates, setDates] = useState<string[]>([new Date().toISOString().split('T')[0]]);
 
     const [branch, setBranch] = useState<Branch>("Ümraniye");
