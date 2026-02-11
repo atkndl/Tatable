@@ -132,7 +132,7 @@ export function AddShiftForm() {
                                 onChange={(e) => setSelectedDate(e.target.value)}
                                 className="bg-white border-slate-200 focus:border-indigo-500 text-slate-900 flex-1"
                             />
-                            <Button type="button" onClick={handleAddDate} variant="secondary" className="bg-slate-100 text-slate-700">
+                            <Button type="button" onClick={handleAddDate} variant="outline" className="bg-slate-100 text-slate-700 border-slate-200">
                                 Ekle
                             </Button>
                         </div>
