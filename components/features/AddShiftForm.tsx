@@ -19,6 +19,44 @@ export function AddShiftForm() {
 
     const [dates, setDates] = useState<string[]>([new Date().toISOString().split('T')[0]]);
 
+    // Date Picker State
+    const [pickerDate, setPickerDate] = useState(new Date()); // For navigation
+
+    // Generate days for the picker
+    const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
+    const getFirstDayOfMonth = (year: number, month: number) => {
+        const day = new Date(year, month, 1).getDay();
+        return day === 0 ? 6 : day - 1; // Mon=0, Sun=6
+    };
+
+    const pickerYear = pickerDate.getFullYear();
+    const pickerMonth = pickerDate.getMonth();
+    const pickerDaysInMonth = getDaysInMonth(pickerYear, pickerMonth);
+    const pickerFirstDay = getFirstDayOfMonth(pickerYear, pickerMonth);
+    const pickerBlanks = Array.from({ length: pickerFirstDay }, (_, i) => i);
+    const pickerDays = Array.from({ length: pickerDaysInMonth }, (_, i) => i + 1);
+
+    const toggleDate = (day: number) => {
+        // Create date object correctly handling local time
+        const d = new Date(pickerYear, pickerMonth, day);
+        // Using strict formatting to avoid timezone shifts
+        const dateStr = `${pickerYear}-${String(pickerMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+        if (dates.includes(dateStr)) {
+            setDates(dates.filter(d => d !== dateStr));
+        } else {
+            setDates([...dates, dateStr].sort());
+        }
+    };
+
+    const changePickerMonth = (offset: number) => {
+        const newDate = new Date(pickerDate);
+        newDate.setMonth(newDate.getMonth() + offset);
+        setPickerDate(newDate);
+    };
+
+    const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+
     const [branch, setBranch] = useState<Branch>("Ümraniye");
     const [level, setLevel] = useState<Level>("Seviye 1");
     const [hours, setHours] = useState<string>("");
@@ -28,11 +66,7 @@ export function AddShiftForm() {
     const [isTemplateMode, setIsTemplateMode] = useState(false);
     const [templateName, setTemplateName] = useState("");
 
-    const handleAddDate = () => {
-        if (selectedDate && !dates.includes(selectedDate)) {
-            setDates([...dates, selectedDate].sort());
-        }
-    };
+
 
     const handleRemoveDate = (dateToRemove: string) => {
         setDates(dates.filter(d => d !== dateToRemove));
@@ -122,39 +156,72 @@ export function AddShiftForm() {
                 )}
 
                 <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
-                    {/* Date Selection Area */}
+                    {/* NEW: Inline Multi-Date Picker */}
                     <div className="col-span-2 space-y-2">
-                        <Label className="text-slate-700">Tarihler ({dates.length})</Label>
-                        <div className="flex gap-2">
-                            <Input
-                                type="date"
-                                value={selectedDate}
-                                onChange={(e) => setSelectedDate(e.target.value)}
-                                className="bg-white border-slate-200 focus:border-indigo-500 text-slate-900 flex-1"
-                            />
-                            <Button type="button" onClick={handleAddDate} variant="outline" className="bg-slate-100 text-slate-700 border-slate-200">
-                                Ekle
-                            </Button>
-                        </div>
+                        <Label className="text-slate-700">Tarih Seçimi ({dates.length} gün)</Label>
+                        <div className="border border-slate-200 rounded-lg p-3 bg-slate-50">
+                            {/* Picker Header */}
+                            <div className="flex items-center justify-between mb-3 px-1">
+                                <button type="button" onClick={() => changePickerMonth(-1)} className="p-1 hover:bg-slate-200 rounded text-slate-500 font-bold">
+                                    &lt;
+                                </button>
+                                <span className="text-sm font-semibold text-slate-700">
+                                    {monthNames[pickerMonth]} {pickerYear}
+                                </span>
+                                <button type="button" onClick={() => changePickerMonth(1)} className="p-1 hover:bg-slate-200 rounded text-slate-500 font-bold">
+                                    &gt;
+                                </button>
+                            </div>
 
-                        {/* Selected Dates List */}
-                        {dates.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mt-2 p-2 bg-slate-50 rounded-md border border-slate-100 max-h-32 overflow-y-auto">
-                                {dates.map(d => (
-                                    <span key={d} className="inline-flex items-center gap-1 px-2 py-1 rounded bg-white border border-slate-200 text-xs font-medium text-slate-700">
-                                        {new Date(d).toLocaleDateString('tr-TR')}
-                                        <button
-                                            type="button"
-                                            onClick={() => handleRemoveDate(d)}
-                                            className="text-slate-400 hover:text-red-500"
-                                        >
-                                            &times;
-                                        </button>
-                                    </span>
+                            {/* Picker Grid */}
+                            <div className="grid grid-cols-7 gap-1 mb-2 text-center">
+                                {["Pt", "Sa", "Ça", "Pe", "Cu", "Ct", "Pa"].map(d => (
+                                    <div key={d} className="text-[10px] uppercase text-slate-400 font-bold">{d}</div>
                                 ))}
                             </div>
-                        )}
+                            <div className="grid grid-cols-7 gap-1">
+                                {pickerBlanks.map((b, i) => <div key={`b-${i}`} />)}
+                                {pickerDays.map(day => {
+                                    const dateStr = `${pickerYear}-${String(pickerMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                                    const isSelected = dates.includes(dateStr);
+
+                                    // Check if it's today
+                                    const todayStr = new Date().toISOString().split('T')[0];
+                                    const isToday = dateStr === todayStr;
+
+                                    return (
+                                        <button
+                                            key={day}
+                                            type="button"
+                                            onClick={() => toggleDate(day)}
+                                            className={`
+                                                h-8 rounded text-sm font-medium transition-all flex items-center justify-center relative
+                                                ${isSelected
+                                                    ? 'bg-indigo-600 text-white shadow-sm hover:bg-indigo-700 scale-105'
+                                                    : 'bg-white text-slate-700 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600'
+                                                }
+                                                ${isToday && !isSelected ? 'ring-2 ring-indigo-200 border-indigo-300 z-10' : ''}
+                                            `}
+                                        >
+                                            {day}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            {/* Selected Dates Summary (Mini List) */}
+                            {dates.length > 0 && (
+                                <div className="mt-3 pt-3 border-t border-slate-200 flex flex-wrap gap-1">
+                                    <span className="text-xs text-slate-400 block w-full mb-1">Seçili Tarihler:</span>
+                                    {dates.map(d => (
+                                        <span key={d} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-white border border-slate-200 text-[10px] font-medium text-slate-500">
+                                            {new Date(d).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
+
 
                     <div className="space-y-2">
                         <Label htmlFor="branch" className="text-slate-700">Şube</Label>
