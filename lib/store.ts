@@ -14,6 +14,7 @@ interface ShiftStore {
     filterMonth: number; // 0-11
     itemsPerPage: number;
     separateTraining: boolean;
+    includePlanned: boolean;
 
     actualSalaries: Record<string, number>;
     attendanceGoals: Record<string, { target: number, days: Record<number, 'present' | 'absent' | 'neutral' | 'planned'> }>;
@@ -29,6 +30,7 @@ interface ShiftStore {
     setFilterYear: (year: number) => void;
     setFilterMonth: (month: number) => void;
     toggleSeparateTraining: () => void;
+    toggleIncludePlanned: () => void;
 
     setActualSalary: (year: number, month: number, amount: number) => Promise<void>;
     setAttendanceTarget: (year: number, month: number, target: number) => Promise<void>;
@@ -47,7 +49,9 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
     filterYear: new Date().getFullYear(),
     filterMonth: new Date().getMonth(),
     itemsPerPage: 10,
+    itemsPerPage: 10,
     separateTraining: false,
+    includePlanned: false,
     actualSalaries: {},
     attendanceGoals: {},
     templates: [],
@@ -340,6 +344,7 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
     setFilterYear: (year) => set({ filterYear: year }),
     setFilterMonth: (month) => set({ filterMonth: month }),
     toggleSeparateTraining: () => set((state) => ({ separateTraining: !state.separateTraining })),
+    toggleIncludePlanned: () => set((state) => ({ includePlanned: !state.includePlanned })),
 
     setActualSalary: async (year, month, amount) => {
         const { user } = get();

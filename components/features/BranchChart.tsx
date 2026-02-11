@@ -14,20 +14,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart as PieChartIcon } from "lucide-react";
 
 export function BranchChart() {
-    const { shifts, filterYear, filterMonth } = useShiftStore();
+    const { shifts, filterYear, filterMonth, includePlanned } = useShiftStore();
 
     const data = useMemo(() => {
         const branchStats: Record<string, number> = {};
 
         shifts.forEach(shift => {
             const d = new Date(shift.date);
+            // Time Filter
             if (d.getFullYear() === filterYear && d.getMonth() === filterMonth) {
+                // Status Filter
+                if (!includePlanned && shift.status === 'planned') return;
+
                 branchStats[shift.branch] = (branchStats[shift.branch] || 0) + shift.hours;
             }
         });
 
         return Object.entries(branchStats).map(([name, value]) => ({ name, value }));
-    }, [shifts, filterYear, filterMonth]);
+    }, [shifts, filterYear, filterMonth, includePlanned]);
 
     const COLORS = [
         '#f97316', // Ümraniye (Orange)

@@ -8,7 +8,7 @@ import { Wallet, Clock, BookOpen, PiggyBank } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
 
 export function SummaryCards() {
-    const { shifts, filterYear, filterMonth, separateTraining, toggleSeparateTraining, actualSalaries, setActualSalary } = useShiftStore();
+    const { shifts, filterYear, filterMonth, separateTraining, toggleSeparateTraining, includePlanned, toggleIncludePlanned, actualSalaries, setActualSalary } = useShiftStore();
 
     // Local state for actual salary input to avoid jitter
     const [actualInput, setActualInput] = useState("");
@@ -30,7 +30,13 @@ export function SummaryCards() {
     const stats = useMemo(() => {
         const monthlyShifts = shifts.filter(s => {
             const d = new Date(s.date);
-            return d.getFullYear() === filterYear && d.getMonth() === filterMonth;
+            // Filter by date
+            if (d.getFullYear() !== filterYear || d.getMonth() !== filterMonth) return false;
+
+            // Filter by status (planned)
+            if (!includePlanned && s.status === 'planned') return false;
+
+            return true;
         });
 
         const totalStats = monthlyShifts.reduce((acc, curr) => {
@@ -45,7 +51,7 @@ export function SummaryCards() {
         }, { hours: 0, salary: 0, trainingHours: 0, trainingSalary: 0 });
 
         return totalStats;
-    }, [shifts, filterYear, filterMonth]);
+    }, [shifts, filterYear, filterMonth, includePlanned]);
 
     const displayStats = separateTraining ? {
         hours: stats.hours - stats.trainingHours,
@@ -134,6 +140,27 @@ export function SummaryCards() {
                             +{stats.trainingHours}s / {formatCurrency(stats.trainingSalary)}
                         </p>
                     )}
+                </CardContent>
+            </Card>
+
+            {/* 5. Planned Toggle */}
+            <Card
+                className={`cursor-pointer transition-all duration-300 shadow-sm ${includePlanned ? 'bg-indigo-50 border-indigo-200' : 'bg-white border-slate-200 hover:bg-slate-50'}`}
+                onClick={toggleIncludePlanned}
+            >
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className={`text-sm font-medium ${includePlanned ? 'text-indigo-700' : 'text-slate-500'}`}>
+                        Planlananları Ekle
+                    </CardTitle>
+                    <Clock className={`h-4 w-4 ${includePlanned ? 'text-indigo-600' : 'text-slate-400'}`} />
+                </CardHeader>
+                <CardContent>
+                    <div className={`text-2xl font-bold ${includePlanned ? 'text-indigo-800' : 'text-slate-400'}`}>
+                        {includePlanned ? "Açık" : "Kapalı"}
+                    </div>
+                    <p className="text-xs text-slate-400 mt-1">
+                        {includePlanned ? "Planlananlar dahil ediliyor" : "Sadece tamamlananlar"}
+                    </p>
                 </CardContent>
             </Card>
         </div>

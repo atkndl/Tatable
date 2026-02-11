@@ -18,7 +18,7 @@ import { TrendingUp, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function SalaryChart() {
-    const { shifts, filterYear, filterMonth } = useShiftStore();
+    const { shifts, filterYear, filterMonth, includePlanned } = useShiftStore();
     const [view, setView] = useState<"monthly" | "weekly" | "daily">("monthly");
 
     const data = useMemo(() => {
@@ -33,6 +33,7 @@ export function SalaryChart() {
             shifts.forEach(shift => {
                 const d = new Date(shift.date);
                 if (d.getFullYear() === filterYear) {
+                    if (!includePlanned && shift.status === 'planned') return;
                     monthlyData[d.getMonth()].salary += shift.totalSalary;
                     monthlyData[d.getMonth()].hours += shift.hours;
                 }
@@ -40,9 +41,7 @@ export function SalaryChart() {
             return monthlyData;
 
         } else if (view === "weekly") {
-            // Weekly view logic (For current month)
-            // Break month into 4-5 weeks
-            // Simple approximation: Week 1 (1-7), Week 2 (8-14), etc.
+            // Weekly view logic
             const weeklyData = [
                 { name: "Hafta 1", salary: 0, hours: 0 },
                 { name: "Hafta 2", salary: 0, hours: 0 },
@@ -54,15 +53,17 @@ export function SalaryChart() {
             shifts.forEach(shift => {
                 const d = new Date(shift.date);
                 if (d.getFullYear() === filterYear && d.getMonth() === filterMonth) {
+                    if (!includePlanned && shift.status === 'planned') return;
+
                     const day = d.getDate();
                     const weekIndex = Math.min(Math.floor((day - 1) / 7), 4);
                     weeklyData[weekIndex].salary += shift.totalSalary;
                     weeklyData[weekIndex].hours += shift.hours;
                 }
             });
-            return weeklyData.filter(w => w.salary > 0 || w.name === "Hafta 1"); // Show at least one, or only active weeks
+            return weeklyData.filter(w => w.salary > 0 || w.name === "Hafta 1");
         } else {
-            // Daily view logic (New)
+            // Daily view logic
             const daysInMonth = new Date(filterYear, filterMonth + 1, 0).getDate();
             const dailyData = Array.from({ length: daysInMonth }, (_, i) => ({
                 name: (i + 1).toString(),
@@ -74,6 +75,8 @@ export function SalaryChart() {
             shifts.forEach(shift => {
                 const d = new Date(shift.date);
                 if (d.getFullYear() === filterYear && d.getMonth() === filterMonth) {
+                    if (!includePlanned && shift.status === 'planned') return;
+
                     dailyData[d.getDate() - 1].salary += shift.totalSalary;
                     dailyData[d.getDate() - 1].hours += shift.hours;
                 }
@@ -81,7 +84,7 @@ export function SalaryChart() {
 
             return dailyData;
         }
-    }, [shifts, filterYear, filterMonth, view]);
+    }, [shifts, filterYear, filterMonth, view, includePlanned]);
 
     // Custom Tooltip
     const CustomTooltip = ({ active, payload, label }: any) => {
