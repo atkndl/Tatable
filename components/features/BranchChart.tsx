@@ -30,11 +30,16 @@ export function BranchChart() {
     }, [shifts, filterYear, filterMonth]);
 
     const COLORS = [
-        '#f97316', // Ümraniye (Blue-600)
-        '#db2777', // Fatih
-        '#bc16f9ff', // Küçükçekmece
-        '#0b4a8f',  // Fatih
-        '#10b981', // Other (Emerald-500)
+        '#f97316', // Ümraniye (Orange)
+        '#db2777', // Fatih (Pink)
+        '#bc16f9ff', // Küçükçekmece (Purple)
+        '#0b4a8f',  // Eğitim (Dark Blue)
+        '#10b981', // Bakırköy (Emerald)
+        '#ef4444', // Beyoğlu (Red)
+        '#eab308', // Esenler (Yellow)
+        '#06b6d4', // Esenyurt (Cyan)
+        '#6366f1', // Güngören (Indigo)
+        '#84cc16', // Tuzla (Lime)
     ];
 
     if (data.length === 0) {

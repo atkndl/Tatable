@@ -1,4 +1,4 @@
-export type Branch = "Ümraniye" | "Küçükçekmece" | "Fatih" | "Eğitim";
+export type Branch = "Ümraniye" | "Küçükçekmece" | "Fatih" | "Eğitim" | "Bakırköy" | "Beyoğlu" | "Esenler" | "Esenyurt" | "Güngören" | "Tuzla";
 
 export type Level = "1" | "3" | "E" | "C" | "P";
 

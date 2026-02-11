@@ -95,6 +95,12 @@ export function ShiftList() {
                                                 <option value="Küçükçekmece">Küçükçekmece</option>
                                                 <option value="Fatih">Fatih</option>
                                                 <option value="Eğitim">Eğitim</option>
+                                                <option value="Bakırköy">Bakırköy</option>
+                                                <option value="Beyoğlu">Beyoğlu</option>
+                                                <option value="Esenler">Esenler</option>
+                                                <option value="Esenyurt">Esenyurt</option>
+                                                <option value="Güngören">Güngören</option>
+                                                <option value="Tuzla">Tuzla</option>
                                             </Select>
                                         </td>
                                         <td className="px-2 py-4">
