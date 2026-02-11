@@ -17,6 +17,8 @@ import { supabase } from "@/lib/supabase";
 
 import { CalendarView } from "@/components/features/CalendarView";
 
+import { ProfileSettings } from "@/components/features/ProfileSettings";
+
 export default function Home() {
   const {
     filterYear,
@@ -121,9 +123,12 @@ export default function Home() {
               </Button>
             </div>
 
-            <Button variant="ghost" size="sm" onClick={handleLogout} className="text-slate-500 hover:text-red-600 hover:bg-red-50">
-              <LogOut className="w-4 h-4 mr-2" /> Çıkış
-            </Button>
+            <div className="flex items-center gap-1">
+              <ProfileSettings />
+              <Button variant="ghost" size="sm" onClick={handleLogout} className="text-slate-500 hover:text-red-600 hover:bg-red-50">
+                <LogOut className="w-4 h-4 mr-2" /> Çıkış
+              </Button>
+            </div>
           </div>
         </header>
 
