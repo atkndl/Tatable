@@ -11,12 +11,14 @@ import { Branch, Level, ShiftType } from "@/lib/types";
 import { CalendarIcon, Plus } from "lucide-react";
 
 export function AddShiftForm() {
-    const addShift = useShiftStore((state) => state.addShift);
+    const addShifts = useShiftStore((state) => state.addShifts);
     const templates = useShiftStore((state) => state.templates);
     const addTemplate = useShiftStore((state) => state.addTemplate);
     const removeTemplate = useShiftStore((state) => state.removeTemplate);
 
-    const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
+    const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+    const [dates, setDates] = useState<string[]>([new Date().toISOString().split('T')[0]]);
+
     const [branch, setBranch] = useState<Branch>("Ümraniye");
     const [level, setLevel] = useState<Level>("Seviye 1");
     const [hours, setHours] = useState<string>("");
@@ -26,9 +28,20 @@ export function AddShiftForm() {
     const [isTemplateMode, setIsTemplateMode] = useState(false);
     const [templateName, setTemplateName] = useState("");
 
+    const handleAddDate = () => {
+        if (selectedDate && !dates.includes(selectedDate)) {
+            setDates([...dates, selectedDate].sort());
+        }
+    };
+
+    const handleRemoveDate = (dateToRemove: string) => {
+        setDates(dates.filter(d => d !== dateToRemove));
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!hours || isNaN(Number(hours))) return;
+        if (dates.length === 0) return;
 
         // Save as template if requested
         if (isTemplateMode && templateName) {
@@ -39,13 +52,11 @@ export function AddShiftForm() {
                 type,
                 hours: Number(hours),
             });
-            // Reset template mode after saving? Or keep it? Let's reset.
             setIsTemplateMode(false);
             setTemplateName("");
         }
 
-        addShift({
-            date,
+        addShifts(dates, {
             branch,
             level,
             hours: Number(hours),
@@ -54,6 +65,7 @@ export function AddShiftForm() {
 
         // Reset some fields
         setHours("");
+        setDates([new Date().toISOString().split('T')[0]]);
     };
 
     const handleTemplateSelect = (templateId: string) => {
@@ -74,7 +86,6 @@ export function AddShiftForm() {
                         <CalendarIcon className="w-5 h-5 text-indigo-600" />
                         Yeni Mesai Ekle
                     </div>
-                    {/* Recent Templates Dropdown could go here or inside content */}
                 </CardTitle>
             </CardHeader>
             <CardContent>
@@ -111,16 +122,38 @@ export function AddShiftForm() {
                 )}
 
                 <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
+                    {/* Date Selection Area */}
                     <div className="col-span-2 space-y-2">
-                        <Label htmlFor="date" className="text-slate-700">Tarih</Label>
-                        <Input
-                            id="date"
-                            type="date"
-                            value={date}
-                            onChange={(e) => setDate(e.target.value)}
-                            required
-                            className="bg-white border-slate-200 focus:border-indigo-500 text-slate-900"
-                        />
+                        <Label className="text-slate-700">Tarihler ({dates.length})</Label>
+                        <div className="flex gap-2">
+                            <Input
+                                type="date"
+                                value={selectedDate}
+                                onChange={(e) => setSelectedDate(e.target.value)}
+                                className="bg-white border-slate-200 focus:border-indigo-500 text-slate-900 flex-1"
+                            />
+                            <Button type="button" onClick={handleAddDate} variant="secondary" className="bg-slate-100 text-slate-700">
+                                Ekle
+                            </Button>
+                        </div>
+
+                        {/* Selected Dates List */}
+                        {dates.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-2 p-2 bg-slate-50 rounded-md border border-slate-100 max-h-32 overflow-y-auto">
+                                {dates.map(d => (
+                                    <span key={d} className="inline-flex items-center gap-1 px-2 py-1 rounded bg-white border border-slate-200 text-xs font-medium text-slate-700">
+                                        {new Date(d).toLocaleDateString('tr-TR')}
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveDate(d)}
+                                            className="text-slate-400 hover:text-red-500"
+                                        >
+                                            &times;
+                                        </button>
+                                    </span>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     <div className="space-y-2">
@@ -213,8 +246,8 @@ export function AddShiftForm() {
                         )}
                     </div>
 
-                    <Button type="submit" className="col-span-2 w-full bg-indigo-600 hover:bg-indigo-700 text-white mt-2 shadow-sm">
-                        <Plus className="w-4 h-4 mr-2" /> Kaydet
+                    <Button type="submit" className="col-span-2 w-full bg-indigo-600 hover:bg-indigo-700 text-white mt-2 shadow-sm" disabled={dates.length === 0}>
+                        <Plus className="w-4 h-4 mr-2" /> {dates.length > 1 ? `${dates.length} Mesai Kaydet` : 'Kaydet'}
                     </Button>
                 </form>
             </CardContent>

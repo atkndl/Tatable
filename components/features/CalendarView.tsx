@@ -26,19 +26,15 @@ const getBranchColor = (branch: Branch) => {
 export function CalendarView() {
     const { shifts, filterYear, filterMonth } = useShiftStore();
 
+    const updateShift = useShiftStore((state) => state.updateShift);
+
     // 1. Calculate days in month
     const daysInMonth = new Date(filterYear, filterMonth + 1, 0).getDate();
     const firstDayOfMonth = new Date(filterYear, filterMonth, 1).getDay(); // 0 = Sunday
-
-    // Adjust 0 (Sunday) to be 7 for Monday-start calendars if needed, 
-    // but usually standard grids start Sunday. Let's start Monday (1) as is common in TR.
-    // JS: 0=Sun, 1=Mon...6=Sat.
-    // TR Calendar: Mon=1, ..., Sun=7.
     const startingBlankDays = (firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1);
 
     const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
     const blanksArray = Array.from({ length: startingBlankDays }, (_, i) => i);
-
     const weekDays = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"];
 
     // 2. Map shifts to days
@@ -53,6 +49,11 @@ export function CalendarView() {
         if (!shiftsByDay[day]) shiftsByDay[day] = [];
         shiftsByDay[day].push(shift);
     });
+
+    const handleToggleStatus = async (shift: Shift) => {
+        const newStatus = shift.status === 'planned' ? 'completed' : 'planned';
+        await updateShift(shift.id, { status: newStatus });
+    };
 
     return (
         <Card className="bg-white border-slate-200 shadow-sm mt-8">
@@ -84,31 +85,61 @@ export function CalendarView() {
                         const dayShifts = shiftsByDay[day] || [];
                         const isToday =
                             new Date().getDate() === day &&
-                            new Date().getMonth() === filterMonth &&
-                            new Date().getFullYear() === filterYear;
+                            new Date().getMonth() === new Date().getMonth() &&
+                            new Date().getFullYear() === new Date().getFullYear();
+
+                        // Highlight Today: Red Soft Border as requested
+                        const todayStyle = isToday
+                            ? 'ring-2 ring-red-200 bg-red-50/20'
+                            : 'bg-white hover:bg-slate-50';
 
                         return (
-                            <div key={day} className={`bg-white min-h-[100px] p-2 flex flex-col gap-1 transition-colors hover:bg-slate-50 ${isToday ? 'bg-indigo-50/30' : ''}`}>
-                                <div className={`text-xs font-semibold mb-1 ${isToday ? 'text-indigo-600' : 'text-slate-400'}`}>
-                                    {day}
+                            <div key={day} className={`min-h-[100px] p-2 flex flex-col gap-1 transition-colors ${todayStyle}`}>
+                                <div className={`text-xs font-semibold mb-1 flex justify-between ${isToday ? 'text-red-500' : 'text-slate-400'}`}>
+                                    <span>{day}</span>
+                                    {isToday && <span className="text-[10px] uppercase font-bold text-red-400">Bugün</span>}
                                 </div>
 
-                                {dayShifts.map(shift => (
-                                    <div
-                                        key={shift.id}
-                                        className={`
-                                            text-[10px] p-1.5 rounded border border-l-4
-                                            flex flex-col gap-0.5 leading-tight shadow-sm
-                                            ${getBranchColor(shift.branch)}
-                                        `}
-                                    >
-                                        <div className="font-bold truncate">{shift.branch}</div>
-                                        <div className="flex justify-between opacity-80">
-                                            <span>{shift.level} • {shift.type}</span>
-                                            <span className="font-mono">{shift.hours}s</span>
+                                {dayShifts.map(shift => {
+                                    const isPlanned = shift.status === 'planned';
+                                    const baseColor = getBranchColor(shift.branch);
+                                    // Make planned shifts lighter/different
+                                    const styleClass = isPlanned
+                                        ? "bg-slate-50 border-slate-200 text-slate-400 border-dashed" // Planned Style
+                                        : baseColor; // Completed Style
+
+                                    return (
+                                        <div
+                                            key={shift.id}
+                                            className={`
+                                                relative group
+                                                text-[10px] p-1.5 rounded border border-l-4
+                                                flex flex-col gap-0.5 leading-tight shadow-sm
+                                                ${styleClass}
+                                            `}
+                                        >
+                                            <div className="font-bold truncate flex items-center justify-between">
+                                                {shift.branch}
+                                                {isPlanned && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleToggleStatus(shift);
+                                                        }}
+                                                        title="Tamamlandı olarak işaretle"
+                                                        className="ml-1 p-0.5 rounded-full hover:bg-emerald-100 text-slate-300 hover:text-emerald-600 transition-colors"
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <div className="flex justify-between opacity-90">
+                                                <span>{shift.level} • {shift.type}</span>
+                                                <span className="font-mono">{shift.hours}s</span>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         );
                     })}

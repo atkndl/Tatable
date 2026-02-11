@@ -13,6 +13,7 @@ export interface Shift {
     type: ShiftType;
     hourlyRate: number;
     totalSalary: number;
+    status: 'completed' | 'planned';
 }
 
 export interface MonthlyStats {

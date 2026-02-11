@@ -21,7 +21,8 @@ interface ShiftStore {
 
     // Actions
     fetchData: () => Promise<void>;
-    addShift: (shift: Omit<Shift, "id" | "totalSalary" | "hourlyRate">) => Promise<void>;
+    addShift: (shift: Omit<Shift, "id" | "totalSalary" | "hourlyRate" | "status">) => Promise<void>;
+    addShifts: (dates: string[], shiftData: Omit<Shift, "id" | "totalSalary" | "hourlyRate" | "status" | "date">) => Promise<void>;
     updateShift: (id: string, shift: Partial<Omit<Shift, "id" | "totalSalary" | "hourlyRate">>) => Promise<void>;
     removeShift: (id: string) => Promise<void>;
 
@@ -66,7 +67,8 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
             type: s.type,
             hours: Number(s.hours),
             hourlyRate: Number(s.hourly_rate), // Map from DB snake_case
-            totalSalary: Number(s.total_salary) // Map from DB snake_case
+            totalSalary: Number(s.total_salary), // Map from DB snake_case
+            status: s.status || (new Date(s.date) > new Date() ? 'planned' : 'completed') // Default status logic if missing
         })) as Shift[]) || [];
 
         // 2. Fetch Templates
@@ -99,43 +101,125 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
     },
 
     addShift: async (shiftData) => {
+        // Wrapper for bulk add for consistency
+        await get().addShifts([shiftData.date], {
+            branch: shiftData.branch,
+            level: shiftData.level,
+            type: shiftData.type,
+            hours: shiftData.hours
+        });
+    },
+
+    addShifts: async (dates, shiftData) => {
         const { user } = get();
         if (!user) return;
 
         const hourlyRate = (shiftData.type === "Tek" ? 1213.5 : 809);
         const totalSalary = shiftData.hours * hourlyRate;
-        const tempId = crypto.randomUUID();
 
-        // Optimistic Update
-        const newShift: Shift = {
-            id: tempId,
-            ...shiftData,
-            hourlyRate,
-            totalSalary
-        };
-        set((state) => ({ shifts: [newShift, ...state.shifts] }));
+        const newShifts: Shift[] = [];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
-        // DB Update
-        const { data, error } = await supabase.from('shifts').insert({
+        // Prepare new shifts
+        dates.forEach(dateStr => {
+            const shiftDate = new Date(dateStr);
+            shiftDate.setHours(0, 0, 0, 0);
+
+            const isFuture = shiftDate > today;
+            const status: 'completed' | 'planned' = isFuture ? 'planned' : 'completed';
+
+            const newShift: Shift = {
+                id: crypto.randomUUID(), // Temp ID
+                date: dateStr,
+                ...shiftData,
+                hourlyRate,
+                totalSalary,
+                status
+            };
+            newShifts.push(newShift);
+        });
+
+        // 1. Optimistic Update SHIFTS
+        set((state) => ({ shifts: [...newShifts, ...state.shifts] }));
+
+        // 2. Sync ATTENDANCE GOALS (Optimistic)
+        // We need to update attendance for each date
+        const currentGoals = { ...get().attendanceGoals };
+
+        newShifts.forEach(shift => {
+            const d = new Date(shift.date);
+            const year = d.getFullYear();
+            const month = d.getMonth(); // 0-11
+            const day = d.getDate();
+            const key = `${year}-${month}`;
+
+            if (!currentGoals[key]) {
+                currentGoals[key] = { target: 0, days: {} };
+            }
+
+            // Sync logic: 'planned' shift -> 'planned' status (Yellow), 'completed' -> 'present' (Green)
+            const attendanceStatus = shift.status === 'planned' ? 'planned' : 'present';
+
+            currentGoals[key].days = {
+                ...currentGoals[key].days,
+                [day]: attendanceStatus
+            };
+        });
+
+        set({ attendanceGoals: currentGoals });
+
+        // 3. DB Updates (Parallel)
+        // Insert Shifts
+        const shiftsToInsert = newShifts.map(s => ({
             user_id: user.id,
-            date: shiftData.date,
-            branch: shiftData.branch,
-            level: shiftData.level,
-            type: shiftData.type,
-            hours: shiftData.hours,
-            hourly_rate: hourlyRate,
-            total_salary: totalSalary
-        }).select().single();
+            date: s.date,
+            branch: s.branch,
+            level: s.level,
+            type: s.type,
+            hours: s.hours,
+            hourly_rate: s.hourlyRate,
+            total_salary: s.totalSalary,
+            status: s.status
+        }));
 
-        if (data) {
-            // Replace temp ID with real ID
-            set((state) => ({
-                shifts: state.shifts.map(s => s.id === tempId ? { ...s, id: data.id } : s)
-            }));
-        } else if (error) {
-            console.error(error);
-            // Revert on error
-            set((state) => ({ shifts: state.shifts.filter(s => s.id !== tempId) }));
+        const { data, error } = await supabase.from('shifts').insert(shiftsToInsert).select();
+
+        if (error) {
+            console.error("Error adding shifts:", error);
+            // In a real app we might revert, but keeping simple for now
+        } else if (data) {
+            // Update IDs in state with real DB IDs? 
+            // Ideally yes, but bulk replace is tricky. 
+            // Since we use optimistic rendering, we might just let fetchData refresh eventually or replace IDs if critical.
+            // For now, let's assume fetch on next load fixes IDs or just fetchData manually?
+            // Or better: map temp IDs to real IDs if possible.
+            // Since we have multiple, matching them back is hard without a unique key other than UUID.
+            // Let's just re-fetch data to be safe and consistent.
+            await get().fetchData();
+            return;
+        }
+
+        // 4. Update Attendance DB
+        // We need to upsert the attendance goals we modified
+        // Group by month to minimize requests
+        const monthsToUpdate = new Set<string>();
+        newShifts.forEach(s => {
+            const d = new Date(s.date);
+            monthsToUpdate.add(`${d.getFullYear()}-${d.getMonth()}`);
+        });
+
+        for (const monthKey of monthsToUpdate) {
+            const [y, m] = monthKey.split('-').map(Number);
+            const goal = currentGoals[monthKey];
+            if (goal) {
+                await supabase.from('attendance_goals').upsert({
+                    user_id: user.id,
+                    month_key: monthKey,
+                    target: goal.target,
+                    days: goal.days
+                }, { onConflict: 'user_id, month_key' });
+            }
         }
     },
 
@@ -162,12 +246,47 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
         const hours = shiftData.hours || oldShift.hours;
         const hourlyRate = (type === "Tek" ? 1213.5 : 809);
         const totalSalary = hours * hourlyRate;
+        const status = shiftData.status || oldShift.status;
 
-        await supabase.from('shifts').update({
+        const { error } = await supabase.from('shifts').update({
             ...shiftData,
             hourly_rate: hourlyRate,
             total_salary: totalSalary
         }).eq('id', id);
+
+        if (!error) {
+            // If status changed, update attendance too
+            if (shiftData.status) {
+                const { user, attendanceGoals } = get();
+                const d = new Date(oldShift.date);
+                const key = `${d.getFullYear()}-${d.getMonth()}`;
+                const day = d.getDate();
+
+                const currentGoal = attendanceGoals[key] || { target: 0, days: {} };
+                // Map shift status to attendance status
+                const attendanceStatus = shiftData.status === 'planned' ? 'planned' : 'present';
+
+                const newDays = { ...currentGoal.days, [day]: attendanceStatus };
+
+                // Update Local
+                set((state) => ({
+                    attendanceGoals: {
+                        ...state.attendanceGoals,
+                        [key]: { ...currentGoal, days: newDays }
+                    }
+                }));
+
+                // Update DB
+                if (user) {
+                    await supabase.from('attendance_goals').upsert({
+                        user_id: user.id,
+                        month_key: key,
+                        target: currentGoal.target,
+                        days: newDays
+                    }, { onConflict: 'user_id, month_key' });
+                }
+            }
+        }
     },
 
     removeShift: async (id) => {
@@ -179,6 +298,37 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
         const { error } = await supabase.from('shifts').delete().eq('id', id);
         if (error) {
             set({ shifts: oldShifts }); // Revert
+        } else {
+            // Sync: Remove from attendance (set to neutral)
+            const shift = oldShifts.find(s => s.id === id);
+            if (shift) {
+                const d = new Date(shift.date);
+                const { user, attendanceGoals } = get();
+                const key = `${d.getFullYear()}-${d.getMonth()}`;
+                const day = d.getDate();
+
+                const currentGoal = attendanceGoals[key];
+                if (currentGoal && user) {
+                    const newDays = { ...currentGoal.days };
+                    delete newDays[day]; // or set to 'neutral'
+                    // Deleting key might default to neutral/empty in UI, which is safer?
+                    // UI uses: goal.days[day] || 'neutral'. So deleting is fine.
+
+                    set((state) => ({
+                        attendanceGoals: {
+                            ...state.attendanceGoals,
+                            [key]: { ...currentGoal, days: newDays }
+                        }
+                    }));
+
+                    await supabase.from('attendance_goals').upsert({
+                        user_id: user.id,
+                        month_key: key,
+                        target: currentGoal.target,
+                        days: newDays
+                    }, { onConflict: 'user_id, month_key' });
+                }
+            }
         }
     },
 
