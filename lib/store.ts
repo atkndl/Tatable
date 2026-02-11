@@ -16,7 +16,7 @@ interface ShiftStore {
     separateTraining: boolean;
 
     actualSalaries: Record<string, number>;
-    attendanceGoals: Record<string, { target: number, days: Record<number, 'present' | 'absent' | 'neutral'> }>;
+    attendanceGoals: Record<string, { target: number, days: Record<number, 'present' | 'absent' | 'neutral' | 'planned'> }>;
     templates: ShiftTemplate[];
 
     // Actions
@@ -232,8 +232,11 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
         const currentGoal = get().attendanceGoals[key] || { target: 0, days: {} };
         const currentStatus = currentGoal.days[day] || 'neutral';
 
-        let nextStatus: 'present' | 'absent' | 'neutral' = 'present';
-        if (currentStatus === 'present') nextStatus = 'absent';
+        let nextStatus: 'present' | 'absent' | 'neutral' | 'planned' = 'planned'; // Default next from neutral
+
+        if (currentStatus === 'neutral') nextStatus = 'planned';
+        else if (currentStatus === 'planned') nextStatus = 'present';
+        else if (currentStatus === 'present') nextStatus = 'absent';
         else if (currentStatus === 'absent') nextStatus = 'neutral';
 
         const newDays = { ...currentGoal.days, [day]: nextStatus };

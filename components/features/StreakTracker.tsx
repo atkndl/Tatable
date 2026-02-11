@@ -28,6 +28,7 @@ export function StreakTracker() {
         const status = goal.days[index] || 'neutral';
         if (status === 'present') return 'bg-emerald-500 hover:bg-emerald-600 border-emerald-400 text-white';
         if (status === 'absent') return 'bg-red-500 hover:bg-red-600 border-red-400 text-white';
+        if (status === 'planned') return 'bg-amber-400 hover:bg-amber-500 border-amber-300 text-white';
         return 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-600 font-medium'; // improved contrast for neutral
     };
 
@@ -101,9 +102,10 @@ export function StreakTracker() {
                 </div>
 
                 <div className="mt-4 flex gap-4 text-xs text-slate-500 justify-end">
+                    <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-amber-400" /> Planlı</div>
                     <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-emerald-500" /> Geldim</div>
                     <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-500" /> Gelmedim</div>
-                    <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-slate-200" /> Bekliyor</div>
+                    <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-slate-200" /> Çalışmıyor</div>
                 </div>
             </CardContent>
         </Card>
