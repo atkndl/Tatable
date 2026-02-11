@@ -1,6 +1,6 @@
 export type Branch = "Ümraniye" | "Küçükçekmece" | "Fatih" | "Eğitim" | "Bakırköy" | "Beyoğlu" | "Esenler" | "Esenyurt" | "Güngören" | "Tuzla";
 
-export type Level = "1" | "3" | "E" | "C" | "P";
+export type Level = "Seviye 1" | "Seviye 2" | "Seviye 3" | "C#" | "Python" | "Eğitim";
 
 export type ShiftType = "Tek" | "Çift";
 

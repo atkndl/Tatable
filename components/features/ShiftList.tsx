@@ -105,11 +105,12 @@ export function ShiftList() {
                                         </td>
                                         <td className="px-2 py-4">
                                             <Select value={editForm.level} onChange={(e) => setEditForm({ ...editForm, level: e.target.value as Level })} className="h-8 bg-white text-slate-900 border-slate-200">
-                                                <option value="1">1</option>
-                                                <option value="3">3</option>
-                                                <option value="E">E</option>
-                                                <option value="C">C</option>
-                                                <option value="P">P</option>
+                                                <option value="Seviye 1">Seviye 1</option>
+                                                <option value="Seviye 2">Seviye 2</option>
+                                                <option value="Seviye 3">Seviye 3</option>
+                                                <option value="C#">C#</option>
+                                                <option value="Python">Python</option>
+                                                <option value="Eğitim">Eğitim</option>
                                             </Select>
                                         </td>
                                         <td className="px-2 py-4">
@@ -133,7 +134,7 @@ export function ShiftList() {
                                         </td>
                                         <td className="px-6 py-4">{shift.branch}</td>
                                         <td className="px-6 py-4">
-                                            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-600 text-xs font-bold border border-slate-200">
+                                            <span className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold border border-slate-200 whitespace-nowrap">
                                                 {shift.level}
                                             </span>
                                         </td>

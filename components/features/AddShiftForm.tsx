@@ -18,7 +18,7 @@ export function AddShiftForm() {
 
     const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
     const [branch, setBranch] = useState<Branch>("Ümraniye");
-    const [level, setLevel] = useState<Level>("1");
+    const [level, setLevel] = useState<Level>("Seviye 1");
     const [hours, setHours] = useState<string>("");
     const [type, setType] = useState<ShiftType>("Tek");
 
@@ -152,11 +152,12 @@ export function AddShiftForm() {
                             onChange={(e) => setLevel(e.target.value as Level)}
                             className="bg-white border-slate-200 text-slate-900"
                         >
-                            <option value="1">1</option>
-                            <option value="3">3</option>
-                            <option value="E">E</option>
-                            <option value="C">C</option>
-                            <option value="P">P</option>
+                            <option value="Seviye 1">Seviye 1</option>
+                            <option value="Seviye 2">Seviye 2</option>
+                            <option value="Seviye 3">Seviye 3</option>
+                            <option value="C#">C#</option>
+                            <option value="Python">Python</option>
+                            <option value="Eğitim">Eğitim</option>
                         </Select>
                     </div>
 
