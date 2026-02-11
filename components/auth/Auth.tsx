@@ -15,6 +15,7 @@ const PROFILES = [
     { name: "Ahmet Emre Demir", email: "ahmetemre.demir@outlook.com", color: "bg-orange-500" },
     { name: "Furkan Payer", email: "furkanpayer.35@outlook.com", color: "bg-emerald-500" },
     { name: "Elif Görkem Güler", email: "elif.gorkeguler@gmail.com", color: "bg-pink-500" },
+    { name: "Mert Kaan Arslan", email: "arslanmertkaan09@gmail.com", color: "bg-cyan-500" },
 ];
 
 export default function Auth() {
