@@ -15,6 +15,8 @@ import { Button } from "@/components/ui/button";
 import Auth from "@/components/auth/Auth";
 import { supabase } from "@/lib/supabase";
 
+import { CalendarView } from "@/components/features/CalendarView";
+
 export default function Home() {
   const {
     filterYear,
@@ -130,6 +132,7 @@ export default function Home() {
           <div className="space-y-8">
             <SummaryCards />
             <StreakTracker />
+            <CalendarView />
           </div>
         </section>
 
