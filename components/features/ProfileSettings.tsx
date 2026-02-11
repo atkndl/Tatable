@@ -46,15 +46,15 @@ export function ProfileSettings() {
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Profil Ayarları</DialogTitle>
-                    <DialogDescription>
+                    <DialogTitle className="text-slate-900">Profil Ayarları</DialogTitle>
+                    <DialogDescription className="text-slate-500">
                         Hızlı giriş yapmak için bir şifre belirle.
                     </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleUpdatePassword} className="space-y-4 py-4">
                     <div className="space-y-2">
-                        <Label htmlFor="new-password">Yeni Şifre</Label>
+                        <Label htmlFor="new-password" className="text-slate-700">Yeni Şifre</Label>
                         <div className="relative">
                             <Lock className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                             <Input
@@ -62,7 +62,7 @@ export function ProfileSettings() {
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="pl-9"
+                                className="pl-9 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400"
                                 placeholder="******"
                                 minLength={6}
                                 required
