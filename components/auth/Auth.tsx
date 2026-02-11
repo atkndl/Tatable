@@ -129,7 +129,7 @@ export default function Auth() {
             <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4 animate-fade-in">
                 <h1 className="text-3xl md:text-5xl font-bold text-slate-900 mb-12 tracking-tight">Kim giriş yapıyor?</h1>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 max-w-4xl w-full px-4">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-6 md:gap-8 max-w-5xl w-full px-4">
                     {PROFILES.map((profile) => (
                         <button
                             key={profile.email}
