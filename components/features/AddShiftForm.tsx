@@ -17,7 +17,7 @@ export function AddShiftForm() {
     const removeTemplate = useShiftStore((state) => state.removeTemplate);
 
 
-    const [dates, setDates] = useState<string[]>([new Date().toISOString().split('T')[0]]);
+    const [dates, setDates] = useState<string[]>([]);
 
     // Date Picker State
     const [pickerDate, setPickerDate] = useState(new Date()); // For navigation
@@ -99,7 +99,7 @@ export function AddShiftForm() {
 
         // Reset some fields
         setHours("");
-        setDates([new Date().toISOString().split('T')[0]]);
+        setDates([]);
     };
 
     const handleTemplateSelect = (templateId: string) => {
