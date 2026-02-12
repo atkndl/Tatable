@@ -10,10 +10,11 @@ import { SummaryCards } from "@/components/features/SummaryCards";
 import { useShiftStore } from "@/lib/store";
 import { Select } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { Banknote, ChevronLeft, ChevronRight, LogOut } from "lucide-react";
+import { Banknote, ChevronLeft, ChevronRight, LogOut, Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Auth from "@/components/auth/Auth";
 import { supabase } from "@/lib/supabase";
+import Link from "next/link";
 
 import { CalendarView } from "@/components/features/CalendarView";
 
@@ -124,6 +125,14 @@ export default function Home() {
             </div>
 
             <div className="flex items-center gap-1">
+              <Link href="/tools/salary-calculator">
+                <Button variant="ghost" size="sm" className="text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 hidden md:flex">
+                  <Calculator className="w-4 h-4 mr-2" /> Maaş Hesaplayıcı
+                </Button>
+                <Button variant="ghost" size="icon" className="text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 md:hidden">
+                  <Calculator className="w-5 h-5" />
+                </Button>
+              </Link>
               <ProfileSettings />
               <Button variant="ghost" size="sm" onClick={handleLogout} className="text-slate-500 hover:text-red-600 hover:bg-red-50">
                 <LogOut className="w-4 h-4 mr-2" /> Çıkış
