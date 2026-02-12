@@ -229,5 +229,5 @@ export function SummaryCards() {
             </div>
         </div>
     );
-    );
+
 }
