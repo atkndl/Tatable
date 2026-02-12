@@ -96,47 +96,15 @@ export default function SalaryCalculatorPage() {
                     </div>
                 </div>
 
-                {/* Input Grid */}
-                <Card className="bg-white border-slate-200 shadow-sm">
-                    <CardHeader className="pb-4 border-b border-slate-100">
-                        <CardTitle className="text-base font-semibold text-slate-800">Aylık Brüt Kazançlar</CardTitle>
-                        <p className="text-sm text-slate-500">Her ay için brüt kazancınızı giriniz. Sistem mevcut kayıtlarınızdan otomatik veri çekmeye çalışır.</p>
-                    </CardHeader>
-                    <CardContent className="pt-6">
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-                            {monthlyGrosses.map((gross, index) => {
-                                const isCurrentMonth = index === currentMonthIndex;
-                                const monthName = new Date(0, index).toLocaleString('tr-TR', { month: 'long' });
-
-                                return (
-                                    <div key={index} className={`space-y-1.5 p-3 rounded-lg border ${isCurrentMonth ? 'bg-indigo-50/50 border-indigo-200 ring-1 ring-indigo-200' : 'bg-slate-50/50 border-slate-200'}`}>
-                                        <label className={`text-xs font-semibold uppercase tracking-wider ${isCurrentMonth ? 'text-indigo-600' : 'text-slate-500'}`}>
-                                            {monthName}
-                                        </label>
-                                        <div className="relative">
-                                            <span className="absolute left-2.5 top-2 text-slate-400 text-xs font-bold">₺</span>
-                                            <Input
-                                                type="number"
-                                                value={gross || ''}
-                                                onChange={(e) => handleGrossChange(index, e.target.value)}
-                                                className={`pl-6 h-9 text-sm font-medium ${isCurrentMonth ? 'border-indigo-200 focus:ring-indigo-500' : 'border-slate-200'}`}
-                                                placeholder="0"
-                                            />
-                                        </div>
-                                    </div>
-                                )
-                            })}
-                        </div>
-                        <div className="mt-6 flex flex-wrap gap-4 text-xs text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100">
-                            <span className="font-semibold text-slate-700">Parametreler (2026):</span>
-                            <span>Asgari Ücret (Brüt): <span className="font-medium text-slate-900">{formatCurrency(TAX_CONSTANTS.A_MIN_WAGE_GROSS)}</span></span>
-                            <span>•</span>
-                            <span>GV Muafiyeti: <span className="font-medium text-slate-900">Uygulanıyor</span></span>
-                            <span>•</span>
-                            <span>DV Muafiyeti: <span className="font-medium text-slate-900">Uygulanıyor</span></span>
-                        </div>
-                    </CardContent>
-                </Card>
+                {/* Parameters Bar */}
+                <div className="flex flex-wrap gap-4 text-xs text-slate-500 bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
+                    <span className="font-semibold text-slate-700">Parametreler (2026):</span>
+                    <span>Asgari Ücret (Brüt): <span className="font-medium text-slate-900">{formatCurrency(TAX_CONSTANTS.A_MIN_WAGE_GROSS)}</span></span>
+                    <span>•</span>
+                    <span>GV Muafiyeti: <span className="font-medium text-slate-900">Uygulanıyor</span></span>
+                    <span>•</span>
+                    <span>DV Muafiyeti: <span className="font-medium text-slate-900">Uygulanıyor</span></span>
+                </div>
 
                 {/* Results Section */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -193,12 +161,12 @@ export default function SalaryCalculatorPage() {
                                             <td className="px-4 py-3 font-medium text-slate-900 whitespace-nowrap">{row.monthName}</td>
                                             <td className="px-4 py-3 text-right font-medium">
                                                 <div className="relative max-w-[110px] ml-auto">
-                                                    <span className="absolute left-2.5 top-1.5 text-slate-400 text-xs font-bold">₺</span>
+                                                    <span className="absolute left-2.5 top-1.5 text-slate-500 text-xs font-bold">₺</span>
                                                     <Input
                                                         type="number"
                                                         value={row.grossSalary || ''}
                                                         onChange={(e) => handleGrossChange(row.month - 1, e.target.value)}
-                                                        className="pl-6 h-8 text-sm font-medium text-right border-slate-200 focus:ring-indigo-500 bg-white"
+                                                        className="pl-6 h-8 text-sm font-medium text-right border-slate-300 focus:border-indigo-500 focus:ring-indigo-500 bg-white text-slate-900 shadow-sm"
                                                         placeholder="0"
                                                     />
                                                 </div>
