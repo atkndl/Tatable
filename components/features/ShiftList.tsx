@@ -83,87 +83,104 @@ export function ShiftList() {
                                     Bu ay için kayıt bulunamadı.
                                 </td>
                             </tr>
-                        ) : sortedShifts.map((shift) => (
-                            <tr key={shift.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                                {editingId === shift.id ? (
-                                    // Edit Mode Row
-                                    <>
-                                        <td className="px-2 py-4"><Input type="date" value={editForm.date} onChange={(e) => setEditForm({ ...editForm, date: e.target.value })} className="h-8 w-32 bg-white text-slate-900 border-slate-200" /></td>
-                                        <td className="px-2 py-4">
-                                            <Select value={editForm.branch} onChange={(e) => setEditForm({ ...editForm, branch: e.target.value as Branch })} className="h-8 bg-white text-slate-900 border-slate-200">
-                                                <option value="Ümraniye">Ümraniye</option>
-                                                <option value="Küçükçekmece">Küçükçekmece</option>
-                                                <option value="Fatih">Fatih</option>
-                                                <option value="Eğitim">Eğitim</option>
-                                                <option value="Bakırköy">Bakırköy</option>
-                                                <option value="Beyoğlu">Beyoğlu</option>
-                                                <option value="Esenler">Esenler</option>
-                                                <option value="Esenyurt">Esenyurt</option>
-                                                <option value="Güngören">Güngören</option>
-                                                <option value="Tuzla">Tuzla</option>
-                                            </Select>
-                                        </td>
-                                        <td className="px-2 py-4">
-                                            <Select value={editForm.level} onChange={(e) => setEditForm({ ...editForm, level: e.target.value as Level })} className="h-8 bg-white text-slate-900 border-slate-200">
-                                                <option value="Seviye 1">Seviye 1</option>
-                                                <option value="Seviye 2">Seviye 2</option>
-                                                <option value="Seviye 3">Seviye 3</option>
-                                                <option value="C#">C#</option>
-                                                <option value="Python">Python</option>
-                                                <option value="Eğitim">Eğitim</option>
-                                            </Select>
-                                        </td>
-                                        <td className="px-2 py-4">
-                                            <Select value={editForm.type} onChange={(e) => setEditForm({ ...editForm, type: e.target.value as ShiftType })} className="h-8 bg-white text-slate-900 border-slate-200">
-                                                <option value="Tek">Tek</option>
-                                                <option value="Çift">Çift</option>
-                                            </Select>
-                                        </td>
-                                        <td className="px-2 py-4"><Input type="number" value={editForm.hours} onChange={(e) => setEditForm({ ...editForm, hours: Number(e.target.value) })} className="h-8 w-16 text-right bg-white text-slate-900 border-slate-200" /></td>
-                                        <td className="px-6 py-4 text-right text-slate-400">-</td>
-                                        <td className="px-2 py-4 text-center flex justify-center gap-1">
-                                            <Button size="icon" variant="ghost" className="h-8 w-8 text-emerald-600 hover:bg-emerald-50" onClick={handleSave}><Check className="w-4 h-4" /></Button>
-                                            <Button size="icon" variant="ghost" className="h-8 w-8 text-slate-500 hover:bg-slate-100" onClick={() => setEditingId(null)}><X className="w-4 h-4" /></Button>
-                                        </td>
-                                    </>
-                                ) : (
-                                    // View Mode Row
-                                    <>
-                                        <td className="px-6 py-4 font-medium text-slate-900">
-                                            {new Date(shift.date).toLocaleDateString('tr-TR')}
-                                        </td>
-                                        <td className="px-6 py-4">{shift.branch}</td>
-                                        <td className="px-6 py-4">
-                                            <span className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold border border-slate-200 whitespace-nowrap">
-                                                {shift.level}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4">{shift.type}</td>
-                                        <td className="px-6 py-4 text-right font-medium text-emerald-600">{shift.hours}s</td>
-                                        <td className="px-6 py-4 text-right font-medium text-slate-900">
-                                            {formatCurrency(shift.totalSalary)}
-                                        </td>
+                        ) : sortedShifts.map((shift, index) => {
+                            const isPlanned = shift.status === 'planned';
+                            // Row Styling Logic
+                            let rowClass = "border-b border-slate-100 transition-colors ";
 
-                                        {/* Actions Column based on Mode */}
-                                        {mode === "edit" && (
-                                            <td className="px-6 py-4 text-center">
-                                                <Button size="icon" variant="ghost" className="h-8 w-8 text-amber-600 hover:bg-amber-50" onClick={() => handleEditClick(shift)}>
-                                                    <Edit2 className="w-4 h-4" />
-                                                </Button>
+                            if (isPlanned) {
+                                // Planned: Neutral, subtle
+                                rowClass += "bg-slate-50/80 text-slate-400 saturate-50";
+                            } else {
+                                // Completed: Alternating Green
+                                rowClass += index % 2 === 0
+                                    ? "bg-emerald-50/50 hover:bg-emerald-100/50"
+                                    : "bg-emerald-100/30 hover:bg-emerald-100/60";
+                            }
+
+                            return (
+                                <tr key={shift.id} className={rowClass}>
+                                    {editingId === shift.id ? (
+                                        // Edit Mode Row
+                                        <>
+                                            <td className="px-2 py-4"><Input type="date" value={editForm.date} onChange={(e) => setEditForm({ ...editForm, date: e.target.value })} className="h-8 w-32 bg-white text-slate-900 border-slate-200" /></td>
+                                            <td className="px-2 py-4">
+                                                <Select value={editForm.branch} onChange={(e) => setEditForm({ ...editForm, branch: e.target.value as Branch })} className="h-8 bg-white text-slate-900 border-slate-200">
+                                                    <option value="Ümraniye">Ümraniye</option>
+                                                    <option value="Küçükçekmece">Küçükçekmece</option>
+                                                    <option value="Fatih">Fatih</option>
+                                                    <option value="Eğitim">Eğitim</option>
+                                                    <option value="Bakırköy">Bakırköy</option>
+                                                    <option value="Beyoğlu">Beyoğlu</option>
+                                                    <option value="Esenler">Esenler</option>
+                                                    <option value="Esenyurt">Esenyurt</option>
+                                                    <option value="Güngören">Güngören</option>
+                                                    <option value="Tuzla">Tuzla</option>
+                                                </Select>
                                             </td>
-                                        )}
-                                        {mode === "delete" && (
-                                            <td className="px-6 py-4 text-center">
-                                                <Button size="icon" variant="ghost" className="h-8 w-8 text-red-600 hover:bg-red-50" onClick={() => removeShift(shift.id)}>
-                                                    <Trash2 className="w-4 h-4" />
-                                                </Button>
+                                            <td className="px-2 py-4">
+                                                <Select value={editForm.level} onChange={(e) => setEditForm({ ...editForm, level: e.target.value as Level })} className="h-8 bg-white text-slate-900 border-slate-200">
+                                                    <option value="Seviye 1">Seviye 1</option>
+                                                    <option value="Seviye 2">Seviye 2</option>
+                                                    <option value="Seviye 3">Seviye 3</option>
+                                                    <option value="C#">C#</option>
+                                                    <option value="Python">Python</option>
+                                                    <option value="Eğitim">Eğitim</option>
+                                                </Select>
                                             </td>
-                                        )}
-                                        {mode === "view" && editingId === null && null}
-                                    </>
-                                )}
-                            </tr>
-                        ))}
+                                            <td className="px-2 py-4">
+                                                <Select value={editForm.type} onChange={(e) => setEditForm({ ...editForm, type: e.target.value as ShiftType })} className="h-8 bg-white text-slate-900 border-slate-200">
+                                                    <option value="Tek">Tek</option>
+                                                    <option value="Çift">Çift</option>
+                                                </Select>
+                                            </td>
+                                            <td className="px-2 py-4"><Input type="number" value={editForm.hours} onChange={(e) => setEditForm({ ...editForm, hours: Number(e.target.value) })} className="h-8 w-16 text-right bg-white text-slate-900 border-slate-200" /></td>
+                                            <td className="px-6 py-4 text-right text-slate-400">-</td>
+                                            <td className="px-2 py-4 text-center flex justify-center gap-1">
+                                                <Button size="icon" variant="ghost" className="h-8 w-8 text-emerald-600 hover:bg-emerald-50" onClick={handleSave}><Check className="w-4 h-4" /></Button>
+                                                <Button size="icon" variant="ghost" className="h-8 w-8 text-slate-500 hover:bg-slate-100" onClick={() => setEditingId(null)}><X className="w-4 h-4" /></Button>
+                                            </td>
+                                        </>
+                                    ) : (
+                                        // View Mode Row
+                                        <>
+                                            <td className={`px-6 py-4 font-medium ${isPlanned ? 'text-slate-500 italic' : 'text-slate-900'}`}>
+                                                {new Date(shift.date).toLocaleDateString('tr-TR')}
+                                                {isPlanned && <span className="ml-2 text-[10px] uppercase bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 not-italic">Planlanan</span>}
+                                            </td>
+                                            <td className="px-6 py-4">{shift.branch}</td>
+                                            <td className="px-6 py-4">
+                                                <span className={`inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-bold border whitespace-nowrap ${isPlanned ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white text-slate-600 border-slate-200'}`}>
+                                                    {shift.level}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4">{shift.type}</td>
+                                            <td className={`px-6 py-4 text-right font-medium ${isPlanned ? 'text-slate-400' : 'text-emerald-600'}`}>{shift.hours}s</td>
+                                            <td className={`px-6 py-4 text-right font-medium ${isPlanned ? 'text-slate-400' : 'text-slate-900'}`}>
+                                                {formatCurrency(shift.totalSalary)}
+                                            </td>
+
+                                            {/* Actions Column based on Mode */}
+                                            {mode === "edit" && (
+                                                <td className="px-6 py-4 text-center">
+                                                    <Button size="icon" variant="ghost" className="h-8 w-8 text-amber-600 hover:bg-amber-50" onClick={() => handleEditClick(shift)}>
+                                                        <Edit2 className="w-4 h-4" />
+                                                    </Button>
+                                                </td>
+                                            )}
+                                            {mode === "delete" && (
+                                                <td className="px-6 py-4 text-center">
+                                                    <Button size="icon" variant="ghost" className="h-8 w-8 text-red-600 hover:bg-red-50" onClick={() => removeShift(shift.id)}>
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </Button>
+                                                </td>
+                                            )}
+                                            {mode === "view" && editingId === null && null}
+                                        </>
+                                    )}
+                                </tr>
+                            );
+                        })}
                     </tbody>
                 </table>
             </div>
