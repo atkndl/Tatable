@@ -15,14 +15,24 @@ export function ShiftList() {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editForm, setEditForm] = useState<Partial<Shift>>({});
 
+    const [hidePlanned, setHidePlanned] = useState(false);
+
     const filteredShifts = shifts.filter(s => {
         const d = new Date(s.date);
-        return d.getFullYear() === filterYear && d.getMonth() === filterMonth;
+        const matchesDate = d.getFullYear() === filterYear && d.getMonth() === filterMonth;
+        if (!matchesDate) return false;
+        if (hidePlanned && s.status === 'planned') return false;
+        return true;
     }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     const handleEditClick = (shift: Shift) => {
         setEditingId(shift.id);
         setEditForm(shift);
+    };
+
+    const handleQuickComplete = (e: React.MouseEvent, shift: Shift) => {
+        e.stopPropagation();
+        updateShift(shift.id, { status: 'completed' });
     };
 
     const handleSave = () => {
@@ -44,23 +54,37 @@ export function ShiftList() {
     return (
         <div className="space-y-4">
             {/* Mode Toggles */}
-            <div className="flex justify-end gap-2">
-                <Button
-                    variant={mode === "edit" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setMode(mode === "edit" ? "view" : "edit")}
-                    className={mode === "edit" ? "bg-amber-600 hover:bg-amber-700 text-white" : "border-slate-200 text-slate-500 hover:text-slate-900"}
-                >
-                    <Edit2 className="w-4 h-4 mr-2" /> Düzenle
-                </Button>
-                <Button
-                    variant={mode === "delete" ? "destructive" : "outline"}
-                    size="sm"
-                    onClick={() => setMode(mode === "delete" ? "view" : "delete")}
-                    className={mode === "delete" ? "bg-red-600 hover:bg-red-700 text-white" : "border-slate-200 text-slate-500 hover:text-slate-900"}
-                >
-                    <Trash2 className="w-4 h-4 mr-2" /> Sil
-                </Button>
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <input
+                        type="checkbox"
+                        id="hidePlanned"
+                        checked={hidePlanned}
+                        onChange={(e) => setHidePlanned(e.target.checked)}
+                        className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+                    />
+                    <label htmlFor="hidePlanned" className="text-sm text-slate-600 cursor-pointer select-none font-medium">
+                        Planlananları Gizle
+                    </label>
+                </div>
+                <div className="flex gap-2">
+                    <Button
+                        variant={mode === "edit" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setMode(mode === "edit" ? "view" : "edit")}
+                        className={mode === "edit" ? "bg-amber-600 hover:bg-amber-700 text-white" : "border-slate-200 text-slate-500 hover:text-slate-900"}
+                    >
+                        <Edit2 className="w-4 h-4 mr-2" /> Düzenle
+                    </Button>
+                    <Button
+                        variant={mode === "delete" ? "destructive" : "outline"}
+                        size="sm"
+                        onClick={() => setMode(mode === "delete" ? "view" : "delete")}
+                        className={mode === "delete" ? "bg-red-600 hover:bg-red-700 text-white" : "border-slate-200 text-slate-500 hover:text-slate-900"}
+                    >
+                        <Trash2 className="w-4 h-4 mr-2" /> Sil
+                    </Button>
+                </div>
             </div>
 
             <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -80,7 +104,7 @@ export function ShiftList() {
                         {sortedShifts.length === 0 ? (
                             <tr>
                                 <td colSpan={7} className="px-6 py-8 text-center text-slate-400">
-                                    Bu ay için kayıt bulunamadı.
+                                    {hidePlanned ? "Planlanan mesailer gizlendi." : "Bu ay için kayıt bulunamadı."}
                                 </td>
                             </tr>
                         ) : sortedShifts.map((shift, index) => {
@@ -146,7 +170,18 @@ export function ShiftList() {
                                         <>
                                             <td className={`px-6 py-4 font-medium ${isPlanned ? 'text-slate-500 italic' : 'text-slate-900'}`}>
                                                 {new Date(shift.date).toLocaleDateString('tr-TR')}
-                                                {isPlanned && <span className="ml-2 text-[10px] uppercase bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 not-italic">Planlanan</span>}
+                                                {isPlanned && (
+                                                    <span className="ml-2 inline-flex items-center gap-1 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 not-italic">
+                                                        <span className="text-[10px] uppercase text-slate-500">Planlanan</span>
+                                                        <button
+                                                            onClick={(e) => handleQuickComplete(e, shift)}
+                                                            className="hover:bg-emerald-100 hover:text-emerald-600 rounded-full p-0.5 transition-colors"
+                                                            title="Tamamlandı olarak işaretle"
+                                                        >
+                                                            <Check className="w-3 h-3" />
+                                                        </button>
+                                                    </span>
+                                                )}
                                             </td>
                                             <td className="px-6 py-4">{shift.branch}</td>
                                             <td className="px-6 py-4">

@@ -266,12 +266,12 @@ export function AddShiftForm() {
                         <Input
                             id="hours"
                             type="number"
-                            placeholder="3"
+                            placeholder="Örn: 3"
                             step="0.5"
                             value={hours}
                             onChange={(e) => setHours(e.target.value)}
                             required
-                            className="bg-white border-slate-200 text-slate-900"
+                            className="bg-white border-slate-200 text-slate-900 placeholder:text-slate-300"
                         />
                     </div>
 

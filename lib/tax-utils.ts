@@ -17,15 +17,15 @@ export interface MonthlyTaxResult {
     netSalary: number;
 }
 
-// 2025/2026 Estimates (Easily updating these constants updates the whole logic)
+// 2026 Estimates
 export const TAX_CONSTANTS = {
-    A_MIN_WAGE_GROSS: 25503, // Estimated 2026/Late 2025 (Currently ~20002 in 2024, ~25-26k estimate)
-    A_MIN_WAGE_NET: 21500, // Estimate
+    A_MIN_WAGE_GROSS: 33030, // Official 2026 Estimate provided by user
+    A_MIN_WAGE_NET: 28000, // Approximate Net ~33030 * 0.85 (Rough Estimate)
     SGK_WORKER_RATE: 0.14,
     UNEMPLOYMENT_WORKER_RATE: 0.01,
     STAMP_TAX_RATE: 0.00759,
     INCOME_TAX_BRACKETS: [
-        { limit: 158000, rate: 0.15 }, // 2025 Estimate (Adjusted from 110k)
+        { limit: 158000, rate: 0.15 }, // 2025 Estimate
         { limit: 380000, rate: 0.20 }, // Estimate
         { limit: 1100000, rate: 0.27 }, // Estimate
         { limit: 4300000, rate: 0.35 }, // Estimate
@@ -35,9 +35,6 @@ export const TAX_CONSTANTS = {
 
 // Calculate tax for a specific cumulative base amount
 export function calculateIncomeTax(cumulativeBase: number, currentMonthBase: number): number {
-    const brackets = TAX_CONSTANTS.INCOME_TAX_BRACKETS;
-    let remainingBase = currentMonthBase;
-    let tax = 0;
     // Calculate total tax for (cumulative) and subtract total tax for (cumulative - current)
     return calculateTotalTaxForAmount(cumulativeBase) - calculateTotalTaxForAmount(cumulativeBase - currentMonthBase);
 }
@@ -62,13 +59,12 @@ function calculateTotalTaxForAmount(amount: number): number {
 }
 
 
-export function calculateYearlySalary(monthlyGross: number): MonthlyTaxResult[] {
+// Accepts an array of 12 monthly gross salaries
+export function calculateYearlySalary(monthlyGrosses: number[]): MonthlyTaxResult[] {
     const results: MonthlyTaxResult[] = [];
     let cumulativeGVM = 0;
 
-    // Calculate Min Wage Exemption amounts (Fixed for every month usually, unless min wage changes mid-year)
-    // Min Wage Tax Logic:
-    // Min Wage GVM = Gross - SGK - Unemployment
+    // Calculate Min Wage Exemption amounts (Fixed for every month usually)
     const mwGross = TAX_CONSTANTS.A_MIN_WAGE_GROSS;
     const mwSGK = mwGross * TAX_CONSTANTS.SGK_WORKER_RATE;
     const mwUnemployment = mwGross * TAX_CONSTANTS.UNEMPLOYMENT_WORKER_RATE;
@@ -81,6 +77,8 @@ export function calculateYearlySalary(monthlyGross: number): MonthlyTaxResult[] 
     const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
 
     for (let i = 0; i < 12; i++) {
+        const monthlyGross = monthlyGrosses[i] || 0;
+
         // 1. Deductions
         const sgk = monthlyGross * TAX_CONSTANTS.SGK_WORKER_RATE;
         const unemployment = monthlyGross * TAX_CONSTANTS.UNEMPLOYMENT_WORKER_RATE;
@@ -103,12 +101,14 @@ export function calculateYearlySalary(monthlyGross: number): MonthlyTaxResult[] 
         let exemptedStampTax = mwStamp;
 
         // Actual Payable Tax (Net Deduction)
+        // You cannot exempt more than the tax calculated.
         let payableIncomeTax = incomeTax - exemptedIncomeTax;
-        if (payableIncomeTax < 0) payableIncomeTax = 0;
+        if (payableIncomeTax < 0) {
+            payableIncomeTax = 0;
+        }
 
         let payableStampTax = stampTax - exemptedStampTax;
         if (payableStampTax < 0) payableStampTax = 0;
-
 
         // 6. Net Salary
         const net = (monthlyGross - sgk - unemployment) - payableIncomeTax - payableStampTax;
