@@ -49,7 +49,7 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
     filterYear: new Date().getFullYear(),
     filterMonth: new Date().getMonth(),
     itemsPerPage: 10,
-    itemsPerPage: 10,
+
     separateTraining: false,
     includePlanned: false,
     actualSalaries: {},
