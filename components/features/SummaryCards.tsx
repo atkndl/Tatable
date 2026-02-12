@@ -27,67 +27,144 @@ export function SummaryCards() {
         }
     };
 
-    const stats = useMemo(() => {
+    const buckets = useMemo(() => {
         const monthlyShifts = shifts.filter(s => {
             const d = new Date(s.date);
-            // Filter by date
-            if (d.getFullYear() !== filterYear || d.getMonth() !== filterMonth) return false;
-
-            // Filter by status (planned)
-            if (!includePlanned && s.status === 'planned') return false;
-
-            return true;
+            return d.getFullYear() === filterYear && d.getMonth() === filterMonth;
         });
 
-        const totalStats = monthlyShifts.reduce((acc, curr) => {
-            acc.hours += curr.hours;
-            acc.salary += curr.totalSalary;
+        return monthlyShifts.reduce((acc, curr) => {
+            const isTraining = curr.branch === "Eğitim";
+            const isPlanned = curr.status === 'planned';
 
-            if (curr.branch === "Eğitim") {
-                acc.trainingHours += curr.hours;
-                acc.trainingSalary += curr.totalSalary;
+            if (isTraining) {
+                if (isPlanned) {
+                    acc.trainingPlannedHours += curr.hours;
+                    acc.trainingPlannedSalary += curr.totalSalary;
+                } else {
+                    acc.trainingCompletedHours += curr.hours;
+                    acc.trainingCompletedSalary += curr.totalSalary;
+                }
+            } else {
+                if (isPlanned) {
+                    acc.normalPlannedHours += curr.hours;
+                    acc.normalPlannedSalary += curr.totalSalary;
+                } else {
+                    acc.normalCompletedHours += curr.hours;
+                    acc.normalCompletedSalary += curr.totalSalary;
+                }
             }
             return acc;
-        }, { hours: 0, salary: 0, trainingHours: 0, trainingSalary: 0 });
+        }, {
+            normalCompletedHours: 0, normalCompletedSalary: 0,
+            normalPlannedHours: 0, normalPlannedSalary: 0,
+            trainingCompletedHours: 0, trainingCompletedSalary: 0,
+            trainingPlannedHours: 0, trainingPlannedSalary: 0
+        });
+    }, [shifts, filterYear, filterMonth]);
 
-        return totalStats;
-    }, [shifts, filterYear, filterMonth, includePlanned]);
+    const displayStats = useMemo(() => {
+        let hours = buckets.normalCompletedHours;
+        let salary = buckets.normalCompletedSalary;
 
-    const displayStats = separateTraining ? {
-        hours: stats.hours - stats.trainingHours,
-        salary: stats.salary - stats.trainingSalary
-    } : stats;
+        if (!separateTraining) {
+            hours += buckets.trainingCompletedHours;
+            salary += buckets.trainingCompletedSalary;
+        }
+
+        if (includePlanned) {
+            hours += buckets.normalPlannedHours;
+            salary += buckets.normalPlannedSalary;
+
+            if (!separateTraining) {
+                hours += buckets.trainingPlannedHours;
+                salary += buckets.trainingPlannedSalary;
+            }
+        }
+
+        return { hours, salary };
+    }, [buckets, separateTraining, includePlanned]);
+
+    // Derived values for labels
+    const trainingTotalLimit = includePlanned
+        ? buckets.trainingCompletedHours + buckets.trainingPlannedHours
+        : buckets.trainingCompletedHours;
+
+    const trainingSalaryLimit = includePlanned
+        ? buckets.trainingCompletedSalary + buckets.trainingPlannedSalary
+        : buckets.trainingCompletedSalary;
+
+    const plannedTotalAddon = separateTraining
+        ? buckets.normalPlannedHours
+        : buckets.normalPlannedHours + buckets.trainingPlannedHours;
+
+    const plannedSalaryAddon = separateTraining
+        ? buckets.normalPlannedSalary
+        : buckets.normalPlannedSalary + buckets.trainingPlannedSalary;
+
 
     const actual = actualSalaries[key] || 0;
-    const difference = actual - stats.salary;
+    const difference = actual - displayStats.salary;
+
+    // Compact Card Component for Toggles
+    const CompactToggleCard = ({
+        active,
+        onClick,
+        title,
+        icon: Icon,
+        activeColorClass,
+        activeTextClass,
+        activeBorderClass,
+        subtitle
+    }: any) => (
+        <Card
+            className={`cursor-pointer transition-all duration-300 shadow-sm flex flex-col justify-center px-4 py-3 h-full border ${active ? activeBorderClass + ' ' + activeColorClass : 'bg-white border-slate-200 hover:bg-slate-50'}`}
+            onClick={onClick}
+        >
+            <div className="flex flex-row items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <Icon className={`h-4 w-4 ${active ? activeTextClass : 'text-slate-400'}`} />
+                    <span className={`text-xs font-semibold ${active ? activeTextClass : 'text-slate-500'}`}>{title}</span>
+                </div>
+                <div className={`text-sm font-bold ${active ? activeTextClass : 'text-slate-300'}`}>
+                    {active ? "AÇIK" : "KAPALI"}
+                </div>
+            </div>
+            {active && subtitle && (
+                <div className={`text-[10px] font-medium mt-1 ${activeTextClass} opacity-80`}>
+                    {subtitle}
+                </div>
+            )}
+        </Card>
+    );
 
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {/* 1. Calculated Salary */}
-            <Card className="bg-emerald-50 border-emerald-200 shadow-sm transition-all duration-300 hover:shadow-md">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <Card className="bg-emerald-50 border-emerald-200 shadow-sm transition-all duration-300 hover:shadow-md h-[140px] flex flex-col justify-between">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0">
                     <CardTitle className="text-sm font-bold text-emerald-800">
-                        Hesaplanan ({separateTraining ? "Eğitim Hariç" : "Tümü"})
+                        Hesaplanan
                     </CardTitle>
                     <Wallet className="h-4 w-4 text-emerald-700" />
                 </CardHeader>
-                <CardContent>
-                    <div className="text-3xl font-extrabold text-emerald-900 tracking-tight">
+                <CardContent className="pb-4">
+                    <div className="text-2xl font-extrabold text-emerald-900 tracking-tight">
                         {formatCurrency(displayStats.salary)}
                     </div>
-                    <p className="text-xs text-emerald-700/80 font-medium mt-1">Sistemdeki kayıtlara göre</p>
+                    <p className="text-xs text-emerald-700/80 font-medium mt-1">{separateTraining ? "Eğitim Hariç" : "Tümü"}</p>
                 </CardContent>
             </Card>
 
-            {/* 2. Actual Salary Input */}
-            <Card className="bg-white border-emerald-100 shadow-sm">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            {/* 2. Actual Salary */}
+            <Card className="bg-white border-emerald-100 shadow-sm h-[140px] flex flex-col justify-between">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0">
                     <CardTitle className="text-sm font-medium text-emerald-600">
                         Yatan Maaş
                     </CardTitle>
                     <PiggyBank className="h-4 w-4 text-emerald-600" />
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pb-4">
                     <div className="flex items-center gap-2">
                         <span className="text-lg font-bold text-emerald-600">₺</span>
                         <Input
@@ -105,64 +182,52 @@ export function SummaryCards() {
             </Card>
 
             {/* 3. Total Hours */}
-            <Card className="bg-white border-slate-200 shadow-sm">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <Card className="bg-white border-slate-200 shadow-sm h-[140px] flex flex-col justify-between">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0">
                     <CardTitle className="text-sm font-medium text-slate-500">
-                        Toplam Saat ({separateTraining ? "Eğitim Hariç" : "Tümü"})
+                        Toplam Saat
                     </CardTitle>
                     <Clock className="h-4 w-4 text-slate-400" />
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pb-4">
                     <div className="text-2xl font-bold text-slate-900">
                         {displayStats.hours} Saat
                     </div>
-                    <p className="text-xs text-slate-400 mt-1">Çalışılan süre</p>
+                    <p className="text-xs text-slate-500 font-medium mt-1">{separateTraining ? "Eğitim Hariç" : "Tümü"}</p>
                 </CardContent>
             </Card>
 
-            {/* 4. Training Toggle */}
-            <Card
-                className={`cursor-pointer transition-all duration-300 shadow-sm ${separateTraining ? 'bg-amber-50 border-amber-200' : 'bg-white border-slate-200 hover:bg-slate-50'}`}
-                onClick={toggleSeparateTraining}
-            >
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className={`text-sm font-medium ${separateTraining ? 'text-amber-700' : 'text-slate-500'}`}>
-                        Eğitimleri Ayır
-                    </CardTitle>
-                    <BookOpen className={`h-4 w-4 ${separateTraining ? 'text-amber-600' : 'text-slate-400'}`} />
-                </CardHeader>
-                <CardContent>
-                    <div className={`text-2xl font-bold ${separateTraining ? 'text-amber-800' : 'text-slate-400'}`}>
-                        {separateTraining ? "Açık" : "Kapalı"}
-                    </div>
-                    {separateTraining && (
-                        <p className="text-xs text-amber-600/70 mt-1">
-                            +{stats.trainingHours}s / {formatCurrency(stats.trainingSalary)}
-                        </p>
-                    )}
-                </CardContent>
-            </Card>
+            {/* 4. Toggles Column (Stacked) */}
+            <div className="flex flex-col gap-2 h-[140px]">
+                {/* Training Toggle */}
+                <div className="flex-1">
+                    <CompactToggleCard
+                        active={separateTraining}
+                        onClick={toggleSeparateTraining}
+                        title="Eğitimleri Ayır"
+                        icon={BookOpen}
+                        activeColorClass="bg-amber-50"
+                        activeBorderClass="border-amber-200"
+                        activeTextClass="text-amber-700"
+                        subtitle={`-${trainingTotalLimit}s / -${formatCurrency(trainingSalaryLimit)}`}
+                    />
+                </div>
 
-            {/* 5. Planned Toggle */}
-            <Card
-                className={`cursor-pointer transition-all duration-300 shadow-sm ${includePlanned ? 'bg-indigo-50 border-indigo-200' : 'bg-white border-slate-200 hover:bg-slate-50'}`}
-                onClick={toggleIncludePlanned}
-            >
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className={`text-sm font-medium ${includePlanned ? 'text-indigo-700' : 'text-slate-500'}`}>
-                        Planlananları Ekle
-                    </CardTitle>
-                    <Clock className={`h-4 w-4 ${includePlanned ? 'text-indigo-600' : 'text-slate-400'}`} />
-                </CardHeader>
-                <CardContent>
-                    <div className={`text-2xl font-bold ${includePlanned ? 'text-indigo-800' : 'text-slate-400'}`}>
-                        {includePlanned ? "Açık" : "Kapalı"}
-                    </div>
-                    <p className="text-xs text-slate-400 mt-1">
-                        {includePlanned ? "Planlananlar dahil ediliyor" : "Sadece tamamlananlar"}
-                    </p>
-                </CardContent>
-            </Card>
+                {/* Planned Toggle */}
+                <div className="flex-1">
+                    <CompactToggleCard
+                        active={includePlanned}
+                        onClick={toggleIncludePlanned}
+                        title="Planlananlar"
+                        icon={Clock}
+                        activeColorClass="bg-indigo-50"
+                        activeBorderClass="border-indigo-200"
+                        activeTextClass="text-indigo-700"
+                        subtitle={`+${plannedTotalAddon}s / +${formatCurrency(plannedSalaryAddon)}`}
+                    />
+                </div>
+            </div>
         </div>
+    );
     );
 }
