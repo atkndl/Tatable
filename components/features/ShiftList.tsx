@@ -4,26 +4,51 @@ import { useShiftStore } from "@/lib/store";
 import { formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Trash2, Edit2, Check, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Shift, Branch, Level, ShiftType } from "@/lib/types";
 
+import { generateHolidayShifts } from "@/lib/holidays";
+
 export function ShiftList() {
-    const { shifts, removeShift, updateShift, filterYear, filterMonth } = useShiftStore();
+    const {
+        shifts,
+        removeShift,
+        updateShift,
+        filterYear,
+        filterMonth,
+        includeOfficialHolidays,
+        toggleIncludeOfficialHolidays
+    } = useShiftStore();
     const [mode, setMode] = useState<"view" | "edit" | "delete">("view");
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editForm, setEditForm] = useState<Partial<Shift>>({});
 
     const [hidePlanned, setHidePlanned] = useState(false);
 
-    const filteredShifts = shifts.filter(s => {
-        const d = new Date(s.date);
-        const matchesDate = d.getFullYear() === filterYear && d.getMonth() === filterMonth;
-        if (!matchesDate) return false;
-        if (hidePlanned && s.status === 'planned') return false;
-        return true;
-    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const filteredShifts = useMemo(() => {
+        let currentShifts = shifts.filter(s => {
+            const d = new Date(s.date);
+            return d.getFullYear() === filterYear && d.getMonth() === filterMonth;
+        });
+
+        if (includeOfficialHolidays) {
+            const holidays = generateHolidayShifts(filterYear).filter(h => {
+                const d = new Date(h.date);
+                return d.getMonth() === filterMonth;
+            });
+            currentShifts = [...currentShifts, ...holidays];
+        }
+
+        currentShifts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+        if (hidePlanned) {
+            currentShifts = currentShifts.filter(s => s.status === 'completed');
+        }
+
+        return currentShifts;
+    }, [shifts, filterYear, filterMonth, hidePlanned, includeOfficialHolidays]);
 
     const handleEditClick = (shift: Shift) => {
         setEditingId(shift.id);
@@ -65,6 +90,18 @@ export function ShiftList() {
                     />
                     <label htmlFor="hidePlanned" className="text-sm text-slate-600 cursor-pointer select-none font-medium">
                         Planlananları Gizle
+                    </label>
+                </div>
+                <div className="flex items-center gap-2 mr-auto ml-4">
+                    <input
+                        type="checkbox"
+                        id="includeHolidays"
+                        checked={includeOfficialHolidays}
+                        onChange={toggleIncludeOfficialHolidays}
+                        className="rounded border-slate-300 text-amber-600 focus:ring-amber-500 h-4 w-4"
+                    />
+                    <label htmlFor="includeHolidays" className="text-sm text-slate-600 cursor-pointer select-none font-medium">
+                        Resmi Tatilleri Ekle
                     </label>
                 </div>
                 <div className="flex gap-2">
@@ -109,10 +146,15 @@ export function ShiftList() {
                             </tr>
                         ) : sortedShifts.map((shift, index) => {
                             const isPlanned = shift.status === 'planned';
+                            const isHoliday = shift.isHoliday;
+
                             // Row Styling Logic
                             let rowClass = "border-b border-slate-100 transition-colors ";
 
-                            if (isPlanned) {
+                            if (isHoliday) {
+                                // Holiday: Amber/Orange distinctive
+                                rowClass += "bg-amber-50/60 hover:bg-amber-100/50 text-amber-900";
+                            } else if (isPlanned) {
                                 // Planned: Neutral, subtle
                                 rowClass += "bg-slate-50/80 text-slate-400 saturate-50";
                             } else {
@@ -140,16 +182,25 @@ export function ShiftList() {
                                                     <option value="Esenyurt">Esenyurt</option>
                                                     <option value="Güngören">Güngören</option>
                                                     <option value="Tuzla">Tuzla</option>
+                                                    <option value="Resmi Tatil">Resmi Tatil</option>
                                                 </Select>
                                             </td>
                                             <td className="px-2 py-4">
-                                                <Select value={editForm.level} onChange={(e) => setEditForm({ ...editForm, level: e.target.value as Level })} className="h-8 bg-white text-slate-900 border-slate-200">
+                                                <Select value={editForm.level} onChange={(e) => {
+                                                    const newLevel = e.target.value as Level;
+                                                    if (newLevel === "Resmi Tatil") {
+                                                        setEditForm({ ...editForm, level: newLevel, hours: 8 });
+                                                    } else {
+                                                        setEditForm({ ...editForm, level: newLevel });
+                                                    }
+                                                }} className="h-8 bg-white text-slate-900 border-slate-200">
                                                     <option value="Seviye 1">Seviye 1</option>
                                                     <option value="Seviye 2">Seviye 2</option>
                                                     <option value="Seviye 3">Seviye 3</option>
                                                     <option value="C#">C#</option>
                                                     <option value="Python">Python</option>
                                                     <option value="Eğitim">Eğitim</option>
+                                                    <option value="Resmi Tatil">Resmi Tatil</option>
                                                 </Select>
                                             </td>
                                             <td className="px-2 py-4">
@@ -198,16 +249,20 @@ export function ShiftList() {
                                             {/* Actions Column based on Mode */}
                                             {mode === "edit" && (
                                                 <td className="px-6 py-4 text-center">
-                                                    <Button size="icon" variant="ghost" className="h-8 w-8 text-amber-600 hover:bg-amber-50" onClick={() => handleEditClick(shift)}>
-                                                        <Edit2 className="w-4 h-4" />
-                                                    </Button>
+                                                    {!shift.isHoliday && (
+                                                        <Button size="icon" variant="ghost" className="h-8 w-8 text-amber-600 hover:bg-amber-50" onClick={() => handleEditClick(shift)}>
+                                                            <Edit2 className="w-4 h-4" />
+                                                        </Button>
+                                                    )}
                                                 </td>
                                             )}
                                             {mode === "delete" && (
                                                 <td className="px-6 py-4 text-center">
-                                                    <Button size="icon" variant="ghost" className="h-8 w-8 text-red-600 hover:bg-red-50" onClick={() => removeShift(shift.id)}>
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </Button>
+                                                    {!shift.isHoliday && (
+                                                        <Button size="icon" variant="ghost" className="h-8 w-8 text-red-600 hover:bg-red-50" onClick={() => removeShift(shift.id)}>
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </Button>
+                                                    )}
                                                 </td>
                                             )}
                                             {mode === "view" && editingId === null && null}

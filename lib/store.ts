@@ -1,7 +1,7 @@
-
 import { create } from "zustand";
 import { Shift, Branch, ShiftType, Level, ShiftTemplate } from "./types";
 import { supabase } from "./supabase";
+import { generateHolidayShifts } from "./holidays";
 
 interface ShiftStore {
     // User State
@@ -15,6 +15,7 @@ interface ShiftStore {
     itemsPerPage: number;
     separateTraining: boolean;
     includePlanned: boolean;
+    includeOfficialHolidays: boolean; // New toggle
 
     actualSalaries: Record<string, number>;
     attendanceGoals: Record<string, { target: number, days: Record<number, 'present' | 'absent' | 'neutral' | 'planned'> }>;
@@ -31,6 +32,7 @@ interface ShiftStore {
     setFilterMonth: (month: number) => void;
     toggleSeparateTraining: () => void;
     toggleIncludePlanned: () => void;
+    toggleIncludeOfficialHolidays: () => void; // New action
 
     setActualSalary: (year: number, month: number, amount: number) => Promise<void>;
     setAttendanceTarget: (year: number, month: number, target: number) => Promise<void>;
@@ -52,6 +54,7 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
 
     separateTraining: false,
     includePlanned: false,
+    includeOfficialHolidays: false, // Default false
     actualSalaries: {},
     attendanceGoals: {},
     templates: [],
@@ -118,7 +121,9 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
         const { user } = get();
         if (!user) return;
 
-        const hourlyRate = (shiftData.type === "Tek" ? 1213.5 : 809);
+        let hourlyRate = 809;
+        if (shiftData.level === "Eğitim") hourlyRate = 404.5;
+
         const totalSalary = shiftData.hours * hourlyRate;
 
         const newShifts: Shift[] = [];
@@ -148,7 +153,6 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
         set((state) => ({ shifts: [...newShifts, ...state.shifts] }));
 
         // 2. Sync ATTENDANCE GOALS (Optimistic)
-        // We need to update attendance for each date
         const currentGoals = { ...get().attendanceGoals };
 
         newShifts.forEach(shift => {
@@ -162,7 +166,6 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
                 currentGoals[key] = { target: 0, days: {} };
             }
 
-            // Sync logic: 'planned' shift -> 'planned' status (Yellow), 'completed' -> 'present' (Green)
             const attendanceStatus = shift.status === 'planned' ? 'planned' : 'present';
 
             currentGoals[key].days = {
@@ -174,7 +177,6 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
         set({ attendanceGoals: currentGoals });
 
         // 3. DB Updates (Parallel)
-        // Insert Shifts
         const shiftsToInsert = newShifts.map(s => ({
             user_id: user.id,
             date: s.date,
@@ -191,22 +193,12 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
 
         if (error) {
             console.error("Error adding shifts:", error);
-            // In a real app we might revert, but keeping simple for now
         } else if (data) {
-            // Update IDs in state with real DB IDs? 
-            // Ideally yes, but bulk replace is tricky. 
-            // Since we use optimistic rendering, we might just let fetchData refresh eventually or replace IDs if critical.
-            // For now, let's assume fetch on next load fixes IDs or just fetchData manually?
-            // Or better: map temp IDs to real IDs if possible.
-            // Since we have multiple, matching them back is hard without a unique key other than UUID.
-            // Let's just re-fetch data to be safe and consistent.
             await get().fetchData();
             return;
         }
 
         // 4. Update Attendance DB
-        // We need to upsert the attendance goals we modified
-        // Group by month to minimize requests
         const monthsToUpdate = new Set<string>();
         newShifts.forEach(s => {
             const d = new Date(s.date);
@@ -214,7 +206,6 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
         });
 
         for (const monthKey of monthsToUpdate) {
-            const [y, m] = monthKey.split('-').map(Number);
             const goal = currentGoals[monthKey];
             if (goal) {
                 await supabase.from('attendance_goals').upsert({
@@ -238,19 +229,25 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
                 if (s.id !== id) return s;
                 const type = shiftData.type || s.type;
                 const hours = shiftData.hours || s.hours;
-                const hourlyRate = (type === "Tek" ? 1213.5 : 809);
+
+                const levelToUse = shiftData.level || s.level;
+                let hourlyRate = 809;
+                if (levelToUse === "Eğitim") hourlyRate = 404.5;
+
                 const totalSalary = hours * hourlyRate;
                 return { ...s, ...shiftData, hourlyRate, totalSalary };
             })
         }));
 
         // DB Update
-        // Calculate fields manually for DB
         const type = shiftData.type || oldShift.type;
         const hours = shiftData.hours || oldShift.hours;
-        const hourlyRate = (type === "Tek" ? 1213.5 : 809);
+
+        const levelToUse = shiftData.level || oldShift.level;
+        let hourlyRate = 809;
+        if (levelToUse === "Eğitim") hourlyRate = 404.5;
+
         const totalSalary = hours * hourlyRate;
-        const status = shiftData.status || oldShift.status;
 
         const { error } = await supabase.from('shifts').update({
             ...shiftData,
@@ -259,7 +256,6 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
         }).eq('id', id);
 
         if (!error) {
-            // If status changed, update attendance too
             if (shiftData.status) {
                 const { user, attendanceGoals } = get();
                 const d = new Date(oldShift.date);
@@ -267,7 +263,6 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
                 const day = d.getDate();
 
                 const currentGoal = attendanceGoals[key] || { target: 0, days: {} };
-                // Map shift status to attendance status
                 const attendanceStatus: 'planned' | 'present' = shiftData.status === 'planned' ? 'planned' : 'present';
 
                 const newDays: Record<number, 'present' | 'absent' | 'neutral' | 'planned'> = {
@@ -275,7 +270,6 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
                     [day]: attendanceStatus
                 };
 
-                // Update Local
                 set((state) => ({
                     attendanceGoals: {
                         ...state.attendanceGoals,
@@ -283,7 +277,6 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
                     }
                 }));
 
-                // Update DB
                 if (user) {
                     await supabase.from('attendance_goals').upsert({
                         user_id: user.id,
@@ -306,7 +299,6 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
         if (error) {
             set({ shifts: oldShifts }); // Revert
         } else {
-            // Sync: Remove from attendance (set to neutral)
             const shift = oldShifts.find(s => s.id === id);
             if (shift) {
                 const d = new Date(shift.date);
@@ -319,9 +311,7 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
                     const newDays: Record<number, 'present' | 'absent' | 'neutral' | 'planned'> = {
                         ...(currentGoal.days as Record<number, 'present' | 'absent' | 'neutral' | 'planned'>)
                     };
-                    delete newDays[day]; // or set to 'neutral'
-                    // Deleting key might default to neutral/empty in UI, which is safer?
-                    // UI uses: goal.days[day] || 'neutral'. So deleting is fine.
+                    delete newDays[day];
 
                     set((state) => ({
                         attendanceGoals: {
@@ -345,6 +335,7 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
     setFilterMonth: (month) => set({ filterMonth: month }),
     toggleSeparateTraining: () => set((state) => ({ separateTraining: !state.separateTraining })),
     toggleIncludePlanned: () => set((state) => ({ includePlanned: !state.includePlanned })),
+    toggleIncludeOfficialHolidays: () => set((state) => ({ includeOfficialHolidays: !state.includeOfficialHolidays })),
 
     setActualSalary: async (year, month, amount) => {
         const { user } = get();
@@ -392,7 +383,7 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
         const currentGoal = get().attendanceGoals[key] || { target: 0, days: {} };
         const currentStatus = currentGoal.days[day] || 'neutral';
 
-        let nextStatus: 'present' | 'absent' | 'neutral' | 'planned' = 'planned'; // Default next from neutral
+        let nextStatus: 'present' | 'absent' | 'neutral' | 'planned' = 'planned';
 
         if (currentStatus === 'neutral') nextStatus = 'planned';
         else if (currentStatus === 'planned') nextStatus = 'present';
@@ -424,7 +415,7 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
         if (!user) return;
 
         const tempId = crypto.randomUUID();
-        const newTemplate = { id: tempId, ...templateData, hourlyRate: 0 }; // hourlyRate not needed for template display
+        const newTemplate = { id: tempId, ...templateData, hourlyRate: 0 };
 
         set((state) => ({ templates: [...state.templates, newTemplate] }));
 

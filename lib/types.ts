@@ -1,8 +1,8 @@
-export type Branch = "Ümraniye" | "Küçükçekmece" | "Fatih" | "Eğitim" | "Bakırköy" | "Beyoğlu" | "Esenler" | "Esenyurt" | "Güngören" | "Tuzla";
+export type Branch = "Ümraniye" | "Küçükçekmece" | "Fatih" | "Eğitim" | "Bakırköy" | "Beyoğlu" | "Esenler" | "Esenyurt" | "Güngören" | "Tuzla" | "Resmi Tatil";
 
-export type Level = "Seviye 1" | "Seviye 2" | "Seviye 3" | "C#" | "Python" | "Eğitim";
+export type Level = "Seviye 1" | "Seviye 2" | "Seviye 3" | "C#" | "Python" | "Eğitim" | "Resmi Tatil";
 
-export type ShiftType = "Tek" | "Çift";
+export type ShiftType = "Tek" | "Çift" | "Eğitim" | "Resmi Tatil";
 
 export interface Shift {
     id: string;
@@ -14,6 +14,7 @@ export interface Shift {
     hourlyRate: number;
     totalSalary: number;
     status: 'completed' | 'planned';
+    isHoliday?: boolean; // Optional flag for official holidays
 }
 
 export interface MonthlyStats {

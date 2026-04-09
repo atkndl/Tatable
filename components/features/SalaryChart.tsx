@@ -17,11 +17,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+import { generateHolidayShifts } from "@/lib/holidays";
+
 export function SalaryChart() {
-    const { shifts, filterYear, filterMonth, includePlanned } = useShiftStore();
+    const { shifts, filterYear, filterMonth, includePlanned, includeOfficialHolidays } = useShiftStore();
     const [view, setView] = useState<"monthly" | "weekly" | "daily">("monthly");
 
     const data = useMemo(() => {
+        let allShifts = [...shifts];
+        if (includeOfficialHolidays) {
+            const holidays = generateHolidayShifts(filterYear);
+            allShifts = [...allShifts, ...holidays];
+        }
+
         if (view === "monthly") {
             // Monthly view logic (Existing)
             const monthlyData = Array.from({ length: 12 }, (_, i) => ({
@@ -30,7 +38,7 @@ export function SalaryChart() {
                 hours: 0,
             }));
 
-            shifts.forEach(shift => {
+            allShifts.forEach(shift => {
                 const d = new Date(shift.date);
                 if (d.getFullYear() === filterYear) {
                     if (!includePlanned && shift.status === 'planned') return;
@@ -50,7 +58,7 @@ export function SalaryChart() {
                 { name: "Hafta 5", salary: 0, hours: 0 },
             ];
 
-            shifts.forEach(shift => {
+            allShifts.forEach(shift => {
                 const d = new Date(shift.date);
                 if (d.getFullYear() === filterYear && d.getMonth() === filterMonth) {
                     if (!includePlanned && shift.status === 'planned') return;
@@ -72,7 +80,7 @@ export function SalaryChart() {
                 fullDate: new Date(filterYear, filterMonth, i + 1).toLocaleDateString('tr-TR')
             }));
 
-            shifts.forEach(shift => {
+            allShifts.forEach(shift => {
                 const d = new Date(shift.date);
                 if (d.getFullYear() === filterYear && d.getMonth() === filterMonth) {
                     if (!includePlanned && shift.status === 'planned') return;
@@ -84,7 +92,7 @@ export function SalaryChart() {
 
             return dailyData;
         }
-    }, [shifts, filterYear, filterMonth, view, includePlanned]);
+    }, [shifts, filterYear, filterMonth, view, includePlanned, includeOfficialHolidays]);
 
     // Custom Tooltip
     const CustomTooltip = ({ active, payload, label }: any) => {

@@ -241,6 +241,7 @@ export function AddShiftForm() {
                             <option value="Esenyurt">Esenyurt</option>
                             <option value="Güngören">Güngören</option>
                             <option value="Tuzla">Tuzla</option>
+                            <option value="Resmi Tatil">Resmi Tatil</option>
                         </Select>
                     </div>
 
@@ -249,7 +250,13 @@ export function AddShiftForm() {
                         <Select
                             id="level"
                             value={level}
-                            onChange={(e) => setLevel(e.target.value as Level)}
+                            onChange={(e) => {
+                                const newLevel = e.target.value as Level;
+                                setLevel(newLevel);
+                                if (newLevel === "Resmi Tatil") {
+                                    setHours("8");
+                                }
+                            }}
                             className="bg-white border-slate-200 text-slate-900"
                         >
                             <option value="Seviye 1">Seviye 1</option>
@@ -258,6 +265,7 @@ export function AddShiftForm() {
                             <option value="C#">C#</option>
                             <option value="Python">Python</option>
                             <option value="Eğitim">Eğitim</option>
+                            <option value="Resmi Tatil">Resmi Tatil</option>
                         </Select>
                     </div>
 
@@ -285,6 +293,7 @@ export function AddShiftForm() {
                         >
                             <option value="Tek">Tek</option>
                             <option value="Çift">Çift</option>
+                            <option value="Eğitim">Eğitim</option>
                         </Select>
                     </div>
 
