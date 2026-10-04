@@ -40,12 +40,14 @@ export function CalendarView() {
     // 2. Map shifts to days
     const shiftsByDay: Record<number, Shift[]> = {};
     const filteredShifts = shifts.filter(s => {
-        const d = new Date(s.date);
+        const dateStr = s.date.includes('T') ? s.date : s.date + 'T12:00:00';
+        const d = new Date(dateStr);
         return d.getFullYear() === filterYear && d.getMonth() === filterMonth;
     });
 
     filteredShifts.forEach(shift => {
-        const day = new Date(shift.date).getDate();
+        const dateStr = shift.date.includes('T') ? shift.date : shift.date + 'T12:00:00';
+        const day = new Date(dateStr).getDate();
         if (!shiftsByDay[day]) shiftsByDay[day] = [];
         shiftsByDay[day].push(shift);
     });

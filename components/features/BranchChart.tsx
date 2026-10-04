@@ -20,7 +20,8 @@ export function BranchChart() {
         const branchStats: Record<string, number> = {};
 
         shifts.forEach(shift => {
-            const d = new Date(shift.date);
+            const dateStr = shift.date.includes('T') ? shift.date : shift.date + 'T12:00:00';
+            const d = new Date(dateStr);
             // Time Filter
             if (d.getFullYear() === filterYear && d.getMonth() === filterMonth) {
                 // Status Filter

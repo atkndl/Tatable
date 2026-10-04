@@ -53,7 +53,7 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
     itemsPerPage: 10,
 
     separateTraining: false,
-    includePlanned: false,
+    includePlanned: true,
     includeOfficialHolidays: false, // Default false
     actualSalaries: {},
     attendanceGoals: {},
@@ -73,8 +73,8 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
             level: s.level,
             type: s.type,
             hours: Number(s.hours),
-            hourlyRate: Number(s.hourly_rate), // Map from DB snake_case
-            totalSalary: Number(s.total_salary), // Map from DB snake_case
+            hourlyRate: Number(s.hourly_rate) || 809, // Map from DB snake_case
+            totalSalary: Number(s.total_salary) || (Number(s.hours) * (Number(s.hourly_rate) || 809)), // Fallback calculation if DB has 0 or null
             status: s.status || (new Date(s.date) > new Date() ? 'planned' : 'completed') // Default status logic if missing
         })) as Shift[]) || [];
 

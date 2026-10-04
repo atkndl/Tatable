@@ -47,7 +47,8 @@ export function SummaryCards() {
 
     const buckets = useMemo(() => {
         const monthlyShifts = shifts.filter(s => {
-            const d = new Date(s.date);
+            const dateStr = s.date.includes('T') ? s.date : s.date + 'T12:00:00';
+            const d = new Date(dateStr);
             return d.getFullYear() === filterYear && d.getMonth() === filterMonth;
         });
 

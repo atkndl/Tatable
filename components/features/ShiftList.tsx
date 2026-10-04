@@ -29,13 +29,15 @@ export function ShiftList() {
 
     const filteredShifts = useMemo(() => {
         let currentShifts = shifts.filter(s => {
-            const d = new Date(s.date);
+            const dateStr = s.date.includes('T') ? s.date : s.date + 'T12:00:00';
+            const d = new Date(dateStr);
             return d.getFullYear() === filterYear && d.getMonth() === filterMonth;
         });
 
         if (includeOfficialHolidays) {
             const holidays = generateHolidayShifts(filterYear).filter(h => {
-                const d = new Date(h.date);
+                const dateStr = h.date.includes('T') ? h.date : h.date + 'T12:00:00';
+                const d = new Date(dateStr);
                 return d.getMonth() === filterMonth;
             });
             currentShifts = [...currentShifts, ...holidays];
