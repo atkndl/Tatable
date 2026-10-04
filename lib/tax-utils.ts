@@ -25,10 +25,10 @@ export const TAX_CONSTANTS = {
     UNEMPLOYMENT_WORKER_RATE: 0.01,
     STAMP_TAX_RATE: 0.00759,
     INCOME_TAX_BRACKETS: [
-        { limit: 158000, rate: 0.15 }, // 2025 Estimate
-        { limit: 380000, rate: 0.20 }, // Estimate
-        { limit: 1100000, rate: 0.27 }, // Estimate
-        { limit: 4300000, rate: 0.35 }, // Estimate
+        { limit: 190000, rate: 0.15 }, // 2026 1. Dilim
+        { limit: 400000, rate: 0.20 }, // 2026 2. Dilim
+        { limit: 1500000, rate: 0.27 }, // 2026 3. Dilim (Ücretliler)
+        { limit: 5300000, rate: 0.35 }, // 2026 4. Dilim
         { limit: Infinity, rate: 0.40 }
     ]
 };

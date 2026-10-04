@@ -241,6 +241,9 @@ export function AddShiftForm() {
                             <option value="Esenyurt">Esenyurt</option>
                             <option value="Güngören">Güngören</option>
                             <option value="Tuzla">Tuzla</option>
+                            <option value="Pendik">Pendik</option>
+                            <option value="Şişli">Şişli</option>
+                            <option value="Diğer">Diğer</option>
                             <option value="Resmi Tatil">Resmi Tatil</option>
                         </Select>
                     </div>
@@ -262,9 +265,10 @@ export function AddShiftForm() {
                             <option value="Seviye 1">Seviye 1</option>
                             <option value="Seviye 2">Seviye 2</option>
                             <option value="Seviye 3">Seviye 3</option>
-                            <option value="C#">C#</option>
+                            <option value="Unity">Unity</option>
                             <option value="Python">Python</option>
                             <option value="Eğitim">Eğitim</option>
+                            <option value="Diğer">Diğer</option>
                             <option value="Resmi Tatil">Resmi Tatil</option>
                         </Select>
                     </div>

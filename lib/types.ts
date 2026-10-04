@@ -1,8 +1,14 @@
-export type Branch = "Ümraniye" | "Küçükçekmece" | "Fatih" | "Eğitim" | "Bakırköy" | "Beyoğlu" | "Esenler" | "Esenyurt" | "Güngören" | "Tuzla" | "Resmi Tatil";
+export type Branch = "Ümraniye" | "Küçükçekmece" | "Fatih" | "Eğitim" | "Bakırköy" | "Beyoğlu" | "Esenler" | "Esenyurt" | "Güngören" | "Tuzla" | "Pendik" | "Şişli" | "Diğer" | "Resmi Tatil";
 
-export type Level = "Seviye 1" | "Seviye 2" | "Seviye 3" | "C#" | "Python" | "Eğitim" | "Resmi Tatil";
+export type Level = "Seviye 1" | "Seviye 2" | "Seviye 3" | "Unity" | "Python" | "Eğitim" | "Diğer" | "Resmi Tatil";
 
 export type ShiftType = "Tek" | "Çift" | "Eğitim" | "Resmi Tatil";
+
+export interface ActualSalaryRecord {
+    gross?: number;
+    net?: number;
+    amount?: number;
+}
 
 export interface Shift {
     id: string;

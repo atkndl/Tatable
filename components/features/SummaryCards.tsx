@@ -10,21 +10,39 @@ import { useMemo, useState, useEffect } from "react";
 export function SummaryCards() {
     const { shifts, filterYear, filterMonth, separateTraining, toggleSeparateTraining, includePlanned, toggleIncludePlanned, actualSalaries, setActualSalary } = useShiftStore();
 
-    // Local state for actual salary input to avoid jitter
-    const [actualInput, setActualInput] = useState("");
+    // Local state for actual salary inputs (gross & net)
+    const [grossInput, setGrossInput] = useState("");
+    const [netInput, setNetInput] = useState("");
 
     const key = `${filterYear}-${filterMonth}`;
+    const actualRecord = actualSalaries[key];
 
     useEffect(() => {
-        setActualInput(actualSalaries[key]?.toString() || "");
+        const item = actualSalaries[key] as any;
+        if (item && typeof item === 'object') {
+            setGrossInput(item.gross !== undefined && item.gross !== null ? item.gross.toString() : "");
+            setNetInput(item.net !== undefined && item.net !== null ? item.net.toString() : "");
+        } else if (typeof item === 'number') {
+            setGrossInput("");
+            setNetInput(item ? item.toString() : "");
+        } else {
+            setGrossInput("");
+            setNetInput("");
+        }
     }, [key, actualSalaries]);
 
-    const handleActualChange = (val: string) => {
-        setActualInput(val);
-        const num = parseFloat(val);
-        if (!isNaN(num)) {
-            setActualSalary(filterYear, filterMonth, num);
-        }
+    const handleGrossChange = (val: string) => {
+        setGrossInput(val);
+        const grossNum = val === "" ? undefined : parseFloat(val);
+        const netNum = netInput === "" ? undefined : parseFloat(netInput);
+        setActualSalary(filterYear, filterMonth, { gross: grossNum, net: netNum });
+    };
+
+    const handleNetChange = (val: string) => {
+        setNetInput(val);
+        const grossNum = grossInput === "" ? undefined : parseFloat(grossInput);
+        const netNum = val === "" ? undefined : parseFloat(val);
+        setActualSalary(filterYear, filterMonth, { gross: grossNum, net: netNum });
     };
 
     const buckets = useMemo(() => {
@@ -102,9 +120,11 @@ export function SummaryCards() {
         ? buckets.normalPlannedSalary
         : buckets.normalPlannedSalary + buckets.trainingPlannedSalary;
 
-
-    const actual = actualSalaries[key] || 0;
-    const difference = actual - displayStats.salary;
+    const enteredGross = actualRecord?.gross;
+    const enteredNet = actualRecord?.net;
+    const diffGross = enteredGross !== undefined 
+        ? enteredGross - displayStats.salary 
+        : (enteredNet !== undefined ? enteredNet - displayStats.salary : null);
 
     // Compact Card Component for Toggles
     const CompactToggleCard = ({
@@ -141,7 +161,7 @@ export function SummaryCards() {
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {/* 1. Calculated Salary */}
-            <Card className="bg-emerald-50 border-emerald-200 shadow-sm transition-all duration-300 hover:shadow-md h-[140px] flex flex-col justify-between">
+            <Card className="bg-emerald-50 border-emerald-200 shadow-sm transition-all duration-300 hover:shadow-md min-h-[140px] flex flex-col justify-between">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0">
                     <CardTitle className="text-sm font-bold text-emerald-800">
                         Hesaplanan
@@ -156,33 +176,58 @@ export function SummaryCards() {
                 </CardContent>
             </Card>
 
-            {/* 2. Actual Salary */}
-            <Card className="bg-white border-emerald-100 shadow-sm h-[140px] flex flex-col justify-between">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0">
-                    <CardTitle className="text-sm font-medium text-emerald-600">
+            {/* 2. Actual Salary (Yatan Brüt & Yatan Net) */}
+            <Card className="bg-white border-emerald-100 shadow-sm min-h-[140px] flex flex-col justify-between">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-3 px-4">
+                    <CardTitle className="text-xs font-bold text-emerald-700 uppercase tracking-wider">
                         Yatan Maaş
                     </CardTitle>
                     <PiggyBank className="h-4 w-4 text-emerald-600" />
                 </CardHeader>
-                <CardContent className="pb-4">
-                    <div className="flex items-center gap-2">
-                        <span className="text-lg font-bold text-emerald-600">₺</span>
-                        <Input
-                            type="number"
-                            value={actualInput}
-                            onChange={(e) => handleActualChange(e.target.value)}
-                            className="h-8 bg-emerald-50 border-emerald-200 text-emerald-700 font-bold"
-                            placeholder="0.00"
-                        />
+                <CardContent className="px-4 pb-3 pt-0 space-y-1.5">
+                    <div className="grid grid-cols-2 gap-2">
+                        <div>
+                            <label className="text-[10px] font-medium text-slate-500 block mb-0.5">Yatan Brüt</label>
+                            <div className="relative">
+                                <span className="absolute left-2 top-1 text-slate-400 text-xs font-bold">₺</span>
+                                <Input
+                                    type="number"
+                                    value={grossInput}
+                                    onChange={(e) => handleGrossChange(e.target.value)}
+                                    className="h-7 pl-5 text-xs bg-slate-50 border-slate-200 text-slate-900 font-semibold focus:bg-white"
+                                    placeholder="0.00"
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="text-[10px] font-medium text-emerald-700 block mb-0.5">Yatan Net</label>
+                            <div className="relative">
+                                <span className="absolute left-2 top-1 text-emerald-500 text-xs font-bold">₺</span>
+                                <Input
+                                    type="number"
+                                    value={netInput}
+                                    onChange={(e) => handleNetChange(e.target.value)}
+                                    className="h-7 pl-5 text-xs bg-emerald-50/70 border-emerald-200 text-emerald-900 font-bold focus:bg-white"
+                                    placeholder="0.00"
+                                />
+                            </div>
+                        </div>
                     </div>
-                    <p className={`text-xs mt-2 ${difference >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                        Fark: {difference > 0 ? '+' : ''}{formatCurrency(difference)}
-                    </p>
+                    <div className="flex items-center justify-between text-[11px] pt-0.5">
+                        <span className="text-slate-400 text-[10px] truncate max-w-[120px]">
+                            {enteredGross ? `Brüt: ${formatCurrency(enteredGross)}` : (enteredNet ? `Net: ${formatCurrency(enteredNet)}` : 'Ay sonu maaşı')}
+                        </span>
+                        {diffGross !== null ? (
+                            <span className={`font-semibold text-[10px] ${diffGross >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                                Fark: {diffGross > 0 ? '+' : ''}{formatCurrency(diffGross)}
+                            </span>
+                        ) : null}
+                    </div>
                 </CardContent>
             </Card>
 
             {/* 3. Total Hours */}
-            <Card className="bg-white border-slate-200 shadow-sm h-[140px] flex flex-col justify-between">
+            <Card className="bg-white border-slate-200 shadow-sm min-h-[140px] flex flex-col justify-between">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0">
                     <CardTitle className="text-sm font-medium text-slate-500">
                         Toplam Saat
@@ -198,7 +243,7 @@ export function SummaryCards() {
             </Card>
 
             {/* 4. Toggles Column (Stacked) */}
-            <div className="flex flex-col gap-2 h-[140px]">
+            <div className="flex flex-col gap-2 min-h-[140px]">
                 {/* Training Toggle */}
                 <div className="flex-1">
                     <CompactToggleCard
@@ -229,5 +274,4 @@ export function SummaryCards() {
             </div>
         </div>
     );
-
 }

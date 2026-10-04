@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Shift, Branch, ShiftType, Level, ShiftTemplate } from "./types";
+import { Shift, Branch, ShiftType, Level, ShiftTemplate, ActualSalaryRecord } from "./types";
 import { supabase } from "./supabase";
 import { generateHolidayShifts } from "./holidays";
 
@@ -17,7 +17,7 @@ interface ShiftStore {
     includePlanned: boolean;
     includeOfficialHolidays: boolean; // New toggle
 
-    actualSalaries: Record<string, number>;
+    actualSalaries: Record<string, ActualSalaryRecord>;
     attendanceGoals: Record<string, { target: number, days: Record<number, 'present' | 'absent' | 'neutral' | 'planned'> }>;
     templates: ShiftTemplate[];
 
@@ -34,7 +34,7 @@ interface ShiftStore {
     toggleIncludePlanned: () => void;
     toggleIncludeOfficialHolidays: () => void; // New action
 
-    setActualSalary: (year: number, month: number, amount: number) => Promise<void>;
+    setActualSalary: (year: number, month: number, values: { gross?: number, net?: number }) => Promise<void>;
     setAttendanceTarget: (year: number, month: number, target: number) => Promise<void>;
     toggleAttendanceDay: (year: number, month: number, day: number) => Promise<void>;
 
@@ -83,9 +83,33 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
 
         // 3. Fetch Actual Salaries
         const { data: salariesData } = await supabase.from('actual_salaries').select('*');
-        const salariesMap: Record<string, number> = {};
+        const salariesMap: Record<string, ActualSalaryRecord> = {};
+
+        let localSalaries: Record<string, ActualSalaryRecord> = {};
+        if (typeof window !== 'undefined') {
+            try {
+                const cached = localStorage.getItem('tatable_actual_salaries');
+                if (cached) localSalaries = JSON.parse(cached);
+            } catch (e) {}
+        }
+
         salariesData?.forEach((item: any) => {
-            salariesMap[item.month_key] = Number(item.amount);
+            const dbGross = item.gross_amount !== undefined && item.gross_amount !== null ? Number(item.gross_amount) : undefined;
+            const dbNet = item.net_amount !== undefined && item.net_amount !== null ? Number(item.net_amount) : (item.amount !== undefined && item.amount !== null ? Number(item.amount) : undefined);
+            const local = localSalaries[item.month_key] || {};
+
+            salariesMap[item.month_key] = {
+                gross: dbGross ?? local.gross,
+                net: dbNet ?? local.net,
+                amount: Number(item.amount ?? dbNet ?? dbGross ?? 0)
+            };
+        });
+
+        // Merge local data that might not be synced yet
+        Object.entries(localSalaries).forEach(([k, v]) => {
+            if (!salariesMap[k]) {
+                salariesMap[k] = v;
+            }
         });
 
         // 4. Fetch Attendance Goals
@@ -121,9 +145,7 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
         const { user } = get();
         if (!user) return;
 
-        let hourlyRate = 809;
-        if (shiftData.level === "Eğitim") hourlyRate = 404.5;
-
+        const hourlyRate = 809;
         const totalSalary = shiftData.hours * hourlyRate;
 
         const newShifts: Shift[] = [];
@@ -227,26 +249,16 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
         set((state) => ({
             shifts: state.shifts.map((s) => {
                 if (s.id !== id) return s;
-                const type = shiftData.type || s.type;
                 const hours = shiftData.hours || s.hours;
-
-                const levelToUse = shiftData.level || s.level;
-                let hourlyRate = 809;
-                if (levelToUse === "Eğitim") hourlyRate = 404.5;
-
+                const hourlyRate = 809;
                 const totalSalary = hours * hourlyRate;
                 return { ...s, ...shiftData, hourlyRate, totalSalary };
             })
         }));
 
         // DB Update
-        const type = shiftData.type || oldShift.type;
         const hours = shiftData.hours || oldShift.hours;
-
-        const levelToUse = shiftData.level || oldShift.level;
-        let hourlyRate = 809;
-        if (levelToUse === "Eğitim") hourlyRate = 404.5;
-
+        const hourlyRate = 809;
         const totalSalary = hours * hourlyRate;
 
         const { error } = await supabase.from('shifts').update({
@@ -337,20 +349,48 @@ export const useShiftStore = create<ShiftStore>((set, get) => ({
     toggleIncludePlanned: () => set((state) => ({ includePlanned: !state.includePlanned })),
     toggleIncludeOfficialHolidays: () => set((state) => ({ includeOfficialHolidays: !state.includeOfficialHolidays })),
 
-    setActualSalary: async (year, month, amount) => {
+    setActualSalary: async (year, month, values) => {
         const { user } = get();
+        const key = `${year}-${month}`;
+
+        const existing = get().actualSalaries[key] || {};
+        const updated: ActualSalaryRecord = {
+            gross: values.gross,
+            net: values.net,
+            amount: values.net ?? values.gross ?? existing.amount ?? 0
+        };
+
+        const newSalaries = { ...get().actualSalaries, [key]: updated };
+        set({ actualSalaries: newSalaries });
+
+        if (typeof window !== 'undefined') {
+            try {
+                localStorage.setItem('tatable_actual_salaries', JSON.stringify(newSalaries));
+            } catch (e) {}
+        }
+
         if (!user) return;
 
-        const key = `${year}-${month}`;
-        set((state) => ({
-            actualSalaries: { ...state.actualSalaries, [key]: amount }
-        }));
+        try {
+            const { error } = await supabase.from('actual_salaries').upsert({
+                user_id: user.id,
+                month_key: key,
+                amount: updated.net ?? updated.gross ?? 0,
+                gross_amount: updated.gross ?? null,
+                net_amount: updated.net ?? null,
+            }, { onConflict: 'user_id, month_key' });
 
-        await supabase.from('actual_salaries').upsert({
-            user_id: user.id,
-            month_key: key,
-            amount,
-        }, { onConflict: 'user_id, month_key' });
+            if (error) {
+                // Fallback to legacy amount column if gross_amount/net_amount are not yet present in SQL
+                await supabase.from('actual_salaries').upsert({
+                    user_id: user.id,
+                    month_key: key,
+                    amount: updated.net ?? updated.gross ?? 0,
+                }, { onConflict: 'user_id, month_key' });
+            }
+        } catch (err) {
+            console.error("Error saving actual salary:", err);
+        }
     },
 
     setAttendanceTarget: async (year, month, target) => {

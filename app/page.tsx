@@ -178,12 +178,8 @@ export default function Home() {
                   </h3>
                   <div className="text-sm text-slate-600 space-y-2">
                     <p className="flex justify-between">
-                      <span>Tek Eğitmen:</span>
-                      <span className="font-bold text-slate-900">1.213,50 ₺</span>
-                    </p>
-                    <p className="flex justify-between">
-                      <span>Çift Eğitmen:</span>
-                      <span className="font-bold text-slate-900">809,00 ₺</span>
+                      <span>Saatlik Ücret:</span>
+                      <span className="font-bold text-slate-900">Brüt 809,00 ₺</span>
                     </p>
                     <p className="mt-4 text-xs text-slate-400 border-t border-indigo-100 pt-2">
                       Veriler bulutta saklanır ve her cihazdan erişilebilir.
