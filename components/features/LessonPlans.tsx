@@ -16,14 +16,20 @@ import {
     Sparkles, 
     Maximize2, 
     Minimize2, 
-    Play, 
     Edit3, 
     Save, 
     FileCode, 
-    HelpCircle, 
     ListChecks,
-    ChevronRight,
-    AlertCircle
+    Sun,
+    Moon,
+    Plus,
+    Trash2,
+    RotateCcw,
+    X,
+    Info,
+    Cpu,
+    Gamepad2,
+    FileQuestion
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,186 +40,68 @@ interface LessonPlansProps {
 }
 
 type LevelType = "Seviye 1" | "Seviye 2" | "Seviye 3";
+type ContentType = "code" | "arduino" | "unity" | "text" | "tasks" | "notes";
 
-interface WeekPlan {
+export interface PlanTab {
+    id: string;
+    title: string;
+    type: ContentType;
+    filename?: string;
+    language?: string; // python, csharp, cpp, javascript, markdown, etc.
+    content: string;
+    output?: string;
+}
+
+export interface WeekPlan {
     week: number;
     title: string;
     summary: string;
+    category?: string;
     docUrl?: string; // Google Docs link
-    codeFile: {
-        filename: string;
-        language: "csharp" | "python" | "javascript" | "markdown";
-        code: string;
-        output: string;
-    };
-    tasks: {
-        filename: string;
-        code: string;
-    };
-    notesMarkdown: string;
-    teacherAiNotes: string;
+    hasRealData: boolean; // true ONLY when verified real data exists
+    tabs: PlanTab[];
 }
 
 // Default Google Docs link provided by user for Seviye 3 Hafta 1
 const DEFAULT_SEVIYE_3_HAFTA_1_DOC = "https://docs.google.com/document/d/15dPpS36dixuKTY6SnWyoWlWS-SAMWW3C/edit";
 
-// Curriculum definitions for Seviye 1, Seviye 2, Seviye 3 (8 weeks each)
+// Real curriculum base data: ONLY Seviye 3 Hafta 1 has real data! All other weeks are clean placeholders.
 const INITIAL_CURRICULUM: Record<LevelType, WeekPlan[]> = {
-    "Seviye 1": [
-        {
-            week: 1,
-            title: "Algoritma Mantığı ve Problem Çözme",
-            summary: "Günlük hayattaki algoritmalar, adım adım düşünme ve akış şemalarına giriş.",
-            docUrl: "",
-            codeFile: {
-                filename: "algoritma_temelleri.py",
-                language: "python",
-                code: `# ==========================================
-# SEVİYE 1 - HAFTA 1: ALGORİTMA VE AKIŞ MANTIĞI
-# Problem Çözme & Adım Adım Düşünme
-# ==========================================
-
-# Algoritma: Bir problemi çözmek için izlenen sıralı adımlar bütünüdür.
-# Örnek Senaryo: Çay Demleme veya Karakter Yürütme Algoritması
-
-def adim_adim_hareket():
-    print("Adım 1: Karakter başlangıç noktasında duruyor.")
-    print("Adım 2: 3 adım ileri yürü.")
-    print("Adım 3: Sağa dön (90 derece).")
-    print("Adım 4: 2 adım ileri yürü ve elmayı topla.")
-    print("Adım 5: Hedefe ulaşıldı! Görev tamamlandı.")
-
-# Algoritmayı çalıştıralım:
-adim_adim_hareket()`,
-                output: `Adım 1: Karakter başlangıç noktasında duruyor.
-Adım 2: 3 adım ileri yürü.
-Adım 3: Sağa dön (90 derece).
-Adım 4: 2 adım ileri yürü ve elmayı topla.
-Adım 5: Hedefe ulaşıldı! Görev tamamlandı.
-[Program başarıyla tamamlandı]`
-            },
-            tasks: {
-                filename: "hafta1_gorevler.py",
-                code: `# HAFTA 1 ÖĞRENCİ GÖREVLERİ:
-# Görev 1: Karakterin labirentten çıkması için 5 adımlı bir rota yazın.
-# Görev 2: Eğer önüne taş çıkarsa zıplamasını sağlayacak adımı ekleyin.
-# Görev 3: Kendi sabah uyanma algoritmanızı print komutlarıyla listeleyin.`
-            },
-            notesMarkdown: `### 🎯 Hafta 1 Kazanımları:
-- Algoritma kavramını ve önemini kavrama
-- Günlük hayat problemleri ile kodlama arasındaki ilişkiyi kurma
-- Sıralı işlem (Sequential Execution) mantığı
-- Hata ayıklama (Debugging) temelleri`,
-            teacherAiNotes: `🤖 AI Eğitmen Tavsiyesi:
-- Öğrencilere algoritmayı anlatırken robot taklidi yaptırın: "Beni masaya götürün ama sadece ileri, dön komutları verin."
-- Bir adımı atlarlarsa (örneğin kapıyı açmadan içeri girmeye çalışmak) algoritmanın neden hata verdiğini somut gösterin.`
-        },
-        {
-            week: 2,
-            title: "Blok Tabanlı Kodlamaya Giriş & Karakter Hareketi",
-            summary: "Çalışma ortamının tanıtımı, sahne ve koordinat düzlemi üzerinde karakter kontrolleri.",
-            docUrl: "",
-            codeFile: {
-                filename: "karakter_hareketi.py",
-                language: "python",
-                code: `# ==========================================
-# SEVİYE 1 - HAFTA 2: KOORDİNATLAR VE HAREKET
-# X ve Y Düzleminde Konumlandırma
-# ==========================================
-
-x = 0
-y = 0
-
-def saga_git(adim):
-    global x
-    x += adim
-    print(f"Karakter sağa gitti -> Yeni Konum: (X: {x}, Y: {y})")
-
-def yukari_git(adim):
-    global y
-    y += adim
-    print(f"Karakter yukarı gitti -> Yeni Konum: (X: {x}, Y: {y})")
-
-saga_git(10)
-yukari_git(15)`,
-                output: `Karakter sağa gitti -> Yeni Konum: (X: 10, Y: 0)
-Karakter yukarı gitti -> Yeni Konum: (X: 10, Y: 15)`
-            },
-            tasks: {
-                filename: "gorevler.py",
-                code: `# Karakteri (X: 50, Y: 50) noktasına götüren fonksiyon çağrılarını yapın.`
-            },
-            notesMarkdown: `X ve Y koordinatları ile 2 boyutlu düzlem mantığı pekiştirilir.`,
-            teacherAiNotes: `Merkez noktanın (0,0) olduğunu ve sağa gittikçe X'in, yukarı gittikçe Y'nin arttığını görselleştirin.`
-        },
-        {
-            week: 3,
-            title: "Döngüler (Loops) ile Tekrarlı Hareketler",
-            summary: "Kod tekrarını önleme, sürekli ve belirli sayıda tekrarlayan blokların kullanımı.",
-            docUrl: "",
-            codeFile: {
-                filename: "donguler.py",
-                language: "python",
-                code: `# 5 kere kare çizdirme döngüsü
-for i in range(1, 6):
-    print(f"Döngü Adımı {i}: 10 adım ileri git, 90 derece dön.")`,
-                output: `Döngü Adımı 1: 10 adım ileri git, 90 derece dön.
-Döngü Adımı 2: 10 adım ileri git, 90 derece dön.
-Döngü Adımı 3: 10 adım ileri git, 90 derece dön.
-Döngü Adımı 4: 10 adım ileri git, 90 derece dön.
-Döngü Adımı 5: 10 adım ileri git, 90 derece dön.`
-            },
-            tasks: { filename: "gorevler.py", code: `# 10'dan geriye doğru sayan bir döngü yazın.` },
-            notesMarkdown: `Döngülerin zaman ve kod tasarrufu sağladığı anlatılır.`,
-            teacherAiNotes: `Aynı satırı 100 kere yazmanın zorluğunu hissettirin.`
-        },
-        { week: 4, title: "Koşullu Durumlar (If-Else) ve Karar Yapıları", summary: "Şartlı ifadeler, algılama blokları ve kullanıcı etkileşimli mini senaryolar.", docUrl: "", codeFile: { filename: "kosullar.py", language: "python", code: `can = 100\nif can <= 0:\n    print("Oyun Bitti!")\nelse:\n    print(f"Oyuna devam, canınız: {can}")`, output: `Oyuna devam, canınız: 100` }, tasks: { filename: "gorevler.py", code: `# Puan 50'den büyükse kazandın mesajı verin.` }, notesMarkdown: `Karar mekanizmaları.`, teacherAiNotes: `Trafik ışıkları benzetmesi yapın.` },
-        { week: 5, title: "Değişkenler ve Puan Sistemi", summary: "Skor, can, sayaç gibi verilerin saklanması ve güncellenmesi.", docUrl: "", codeFile: { filename: "puan_sistemi.py", language: "python", code: `skor = 0\nskor += 10\nprint("Yeni Skor:", skor)`, output: `Yeni Skor: 10` }, tasks: { filename: "gorevler.py", code: `# Altın toplandığında skoru 5 artıran kodu yazın.` }, notesMarkdown: `Değişkenlerin kutu benzetmesi ile anlatımı.`, teacherAiNotes: `Değişkeni etiketli bir kutu gibi hayal ettirin.` },
-        { week: 6, title: "Karakterler Arası Mesajlaşma & Olaylar", summary: "Haber salma, sinyal gönderme ve çoklu karakter yönetimi.", docUrl: "", codeFile: { filename: "olaylar.py", language: "python", code: `print("Haber salındı: 'Oyun_Basladi'")\nprint("Karakter 2 mesajı aldı ve koşmaya başladı.")`, output: `Haber salındı: 'Oyun_Basladi'\nKarakter 2 mesajı aldı ve koşmaya başladı.` }, tasks: { filename: "gorevler.py", code: `# Oyun bitti mesajı yollayın.` }, notesMarkdown: `Event-driven programlama temelleri.`, teacherAiNotes: `Telsiz konuşması benzetmesi kullanın.` },
-        { week: 7, title: "Labirent ve Engel Algılama Oyunu", summary: "Çarpışma kontrolleri, sensörler ve bitiş çizgisi mantığı.", docUrl: "", codeFile: { filename: "labirent.py", language: "python", code: `def carpisma_kontrol(duvar):\n    if duvar:\n        return "Geri sek!"\n    return "İlerlemeye devam et."\nprint(carpisma_kontrol(True))`, output: `Geri sek!` }, tasks: { filename: "gorevler.py", code: `# Labirentin sonundaki hazineye ulaşma şartı yazın.` }, notesMarkdown: `Oyun mantığının birleştirilmesi.`, teacherAiNotes: `Öğrencilerin kendi labirent haritalarını çizmelerini sağlayın.` },
-        { week: 8, title: "Dönem Sonu Projesi & Sunum", summary: "Öğrencilerin bağımsız oyun geliştirmesi ve sunumu.", docUrl: "", codeFile: { filename: "final_proje.py", language: "python", code: `print("=== DÖNEM PROJESİ ===")\nprint("Tüm öğrenilen bloklar birleştirildi!")`, output: `=== DÖNEM PROJESİ ===\nTüm öğrenilen bloklar birleştirildi!` }, tasks: { filename: "gorevler.py", code: `# Projenizi tamamlayıp arkadaşlarınıza anlatın.` }, notesMarkdown: `Proje sunumu ve değerlendirme.`, teacherAiNotes: `Her öğrenciye olumlu geri bildirim verin.` }
-    ],
-    "Seviye 2": [
-        {
-            week: 1,
-            title: "Metin Tabanlı Kodlamaya Giriş ve Değişkenler",
-            summary: "Sözdizimi (syntax), veri tipleri (string, int, float, bool) ve terminal kullanımı.",
-            docUrl: "",
-            codeFile: {
-                filename: "degiskenler.py",
-                language: "python",
-                code: `# Metin tabanlı programlama temelleri
-ad = "Ali"
-yas = 14
-boy = 1.68
-ogrenci_mi = True
-
-print(f"Adı: {ad}, Yaşı: {yas}, Boyu: {boy}m")
-print(f"Öğrenci Durumu: {ogrenci_mi}")`,
-                output: `Adı: Ali, Yaşı: 14, Boyu: 1.68m\nÖğrenci Durumu: True`
-            },
-            tasks: { filename: "gorevler.py", code: `# Kendi bilgilerinizi değişkenlere atayıp ekrana yazdırın.` },
-            notesMarkdown: `Syntax hatalarını okuma ve terminal etkileşimi.`,
-            teacherAiNotes: `Tırnak işaretleri ve veri tipi uyumsuzluklarını vurgulayın.`
-        },
-        { week: 2, title: "Aritmetik ve Mantıksal Operatörler", summary: "Matematiksel hesaplamalar, karşılaştırma operatörleri (==, !=, >, <) ve mantık bağlaçları.", docUrl: "", codeFile: { filename: "operatorler.py", language: "python", code: `a = 15\nb = 4\nprint("Bölüm:", a / b)\nprint("Kalan (Mod):", a % b)\nprint("Eşit mi:", a == b)`, output: `Bölüm: 3.75\nKalan (Mod): 3\nEşit mi: False` }, tasks: { filename: "gorevler.py", code: `# Sayının çift olup olmadığını mod (%) operatörüyle bulun.` }, notesMarkdown: `İşlem önceliği ve boolean mantık.`, teacherAiNotes: `Mod operatörünü saat veya takvim örneğiyle anlatın.` },
-        { week: 3, title: "Koşullu Yapılar (If - Else If - Else)", summary: "Dallanma, iç içe koşullar ve çoklu şart kontrolü.", docUrl: "", codeFile: { filename: "kosullar.py", language: "python", code: `notu = 85\nif notu >= 85:\n    print("Takdir aldınız!")\nelif notu >= 70:\n    print("Teşekkür aldınız!")\nelse:\n    print("Biraz daha gayret!")`, output: `Takdir aldınız!` }, tasks: { filename: "gorevler.py", code: `# Hız sınırına göre ceza hesaplayan program yazın.` }, notesMarkdown: `elif sırasının önemi.`, teacherAiNotes: `Yukarıdan aşağıya doğru ilk sağlanan koşulun çalıştığını gösterin.` },
-        { week: 4, title: "For ve While Döngüleri", summary: "Sayaçlı döngüler, koşula bağlı döngüler ve break/continue ifadeleri.", docUrl: "", codeFile: { filename: "donguler.py", language: "python", code: `toplam = 0\nfor sayi in range(1, 6):\n    toplam += sayi\nprint("1'den 5'e kadar toplam:", toplam)`, output: `1'den 5'e kadar toplam: 15` }, tasks: { filename: "gorevler.py", code: `# While döngüsü ile şifre doğru girilene kadar soran kod yazın.` }, notesMarkdown: `Sonsuz döngü (infinite loop) tehlikesi.`, teacherAiNotes: `While döngüsünde sayaç artırmayı unutmanın neye yol açtığını gösterin.` },
-        { week: 5, title: "Listeler ve Dizi Operasyonları", summary: "Veri koleksiyonları, index erişimi, eleman ekleme (append), silme ve sıralama.", docUrl: "", codeFile: { filename: "listeler.py", language: "python", code: `oyuncular = ["Kerem", "Zeynep", "Mert"]\noyuncular.append("Selin")\nprint("İlk Oyuncu:", oyuncular[0])\nprint("Tüm Liste:", oyuncular)`, output: `İlk Oyuncu: Kerem\nTüm Liste: ['Kerem', 'Zeynep', 'Mert', 'Selin']` }, tasks: { filename: "gorevler.py", code: `# Listedeki en büyük sayıyı bulan kodu yazın.` }, notesMarkdown: `Index numarasının 0'dan başladığı kavramı.`, teacherAiNotes: `0. indeksi bir binanın zemin katı olarak anlatın.` },
-        { week: 6, title: "Kullanıcı Girdileri ve Veri Doğrulama", summary: "input() fonksiyonu, tip dönüştürme (type casting) ve hata yakalama.", docUrl: "", codeFile: { filename: "girdi_kontrol.py", language: "python", code: `try:\n    sayi = int("42")\n    print("Karesi:", sayi ** 2)\nexcept ValueError:\n    print("Geçersiz sayı!")`, output: `Karesi: 1764` }, tasks: { filename: "gorevler.py", code: `# Kullanıcıdan iki sayı alıp toplayın, hata olursa yakalayın.` }, notesMarkdown: `String olarak gelen girdinin int'e çevrilmesi.`, teacherAiNotes: `Tip dönüşümü yapılmadığında "5" + "5" işleminin "55" olduğunu gösterin.` },
-        { week: 7, title: "Metotlara Giriş ve Kod Modülerliği", summary: "Kendi fonksiyonlarımızı tanımlama, parametreler ve dönüş değerleri.", docUrl: "", codeFile: { filename: "fonksiyonlar.py", language: "python", code: `def dikdortgen_alan(kisa, uzun):\n    return kisa * uzun\n\nalan = dikdortgen_alan(5, 12)\nprint("Alan:", alan)`, output: `Alan: 60` }, tasks: { filename: "gorevler.py", code: `# Dairenin alanını hesaplayan fonksiyon yazın.` }, notesMarkdown: `Kodun tekrar kullanılabilirliği (Reusability).`, teacherAiNotes: `Fonksiyonları bir fabrikadaki montaj hattı gibi modelleyin.` },
-        { week: 8, title: "Mini Konsol Uygulaması & Proje Sunumu", summary: "Öğrencilerin metin tabanlı macera oyunu veya hesap makinesi geliştirmesi.", docUrl: "", codeFile: { filename: "konsol_oyunu.py", language: "python", code: `print("=== METİN TABANLI OYUN BAŞLADI ===")\nprint("Canavar belirdi! 1-Saldır 2-Kaç")`, output: `=== METİN TABANLI OYUN BAŞLADI ===\nCanavar belirdi! 1-Saldır 2-Kaç` }, tasks: { filename: "gorevler.py", code: `# Kendi oyun senaryonuzu tamamlayın.` }, notesMarkdown: `Dönem sonu değerlendirmesi.`, teacherAiNotes: `Öğrencilerin birbirlerinin kodlarını test etmelerini sağlayın.` }
-    ],
+    "Seviye 1": Array.from({ length: 8 }, (_, i) => ({
+        week: i + 1,
+        title: `Hafta ${i + 1} Ders Planı`,
+        summary: "Bu hafta için henüz ders planı tanımlanmadı. Google Docs linki veya içerik ekleyebilirsiniz.",
+        hasRealData: false,
+        docUrl: "",
+        category: "Genel",
+        tabs: []
+    })),
+    "Seviye 2": Array.from({ length: 8 }, (_, i) => ({
+        week: i + 1,
+        title: `Hafta ${i + 1} Ders Planı`,
+        summary: "Bu hafta için henüz ders planı tanımlanmadı. Google Docs linki veya içerik ekleyebilirsiniz.",
+        hasRealData: false,
+        docUrl: "",
+        category: "Genel",
+        tabs: []
+    })),
     "Seviye 3": [
+        // Hafta 1: REAL DATA verified from user's Google Doc
         {
             week: 1,
             title: "EkoKampüs: Python Temelleri, Değişkenler & Veri Tipleri",
-            summary: "SKA 4, 11, 12 entegrasyonu, okul krokisi ve 5 bölge haritalama, Google Colab akış şeması, değişkenler, tip dönüşümleri ve Canva moodboard.",
+            summary: "SKA 4, 11, 12 entegrasyonu, okul krokisi 5 bölge haritalama, Google Colab akış şeması, değişkenler, tip dönüşümleri ve Canva moodboard.",
+            category: "Yazılım / Python",
             docUrl: DEFAULT_SEVIYE_3_HAFTA_1_DOC,
-            codeFile: {
-                filename: "ekokampus_hafta1.py",
-                language: "python",
-                code: `# ==============================================================================
+            hasRealData: true,
+            tabs: [
+                {
+                    id: "python_code",
+                    title: "ekokampus_hafta1.py",
+                    type: "code",
+                    filename: "ekokampus_hafta1.py",
+                    language: "python",
+                    content: `# ==============================================================================
 # PROJE: EkoKampüs (Sürdürülebilir Okul Sistemi) - HAFTA 1
 # SKA Entegrasyonu: SKA 4 (Nitelikli Eğitim) + SKA 11 + SKA 12
 # Konu: Python Temelleri, Değişkenler, Veri Tipleri & Tip Dönüşümleri
@@ -261,7 +149,7 @@ print(f"[EkoKampüs Özet] {bolge_adi} bölgesi için güncel skor: {yeni_puan}/
 # Ondalıklı tip dönüşümü (float casting)
 karbon_salinimi = float("120.5")
 print(f"Günlük Tahmini Karbon Salınımı: {karbon_salinimi} kg CO2")`,
-                output: `========================================
+                    output: `========================================
 🌱 EKOKAMPÜS: SÜRDÜRÜLEBİLİR OKUL SİSTEMİ
 ========================================
 Odak Bölgeleri: Kantin | Enerji | Ulaşım | Atık | Bahçe
@@ -279,10 +167,14 @@ Ulaşım Bölgesi Puanı (str dönüşümü): 100
 Günlük Tahmini Karbon Salınımı: 120.5 kg CO2
 
 [Program başarıyla tamamlandı - Exit Code: 0]`
-            },
-            tasks: {
-                filename: "ekokampus_gorevler.py",
-                code: `# ==============================================================================
+                },
+                {
+                    id: "tasks",
+                    title: "Öğrenci Görevleri",
+                    type: "tasks",
+                    filename: "ekokampus_gorevler.py",
+                    language: "python",
+                    content: `# ==============================================================================
 # SEVİYE 3 - HAFTA 1 ÖĞRENCİ GÖREVLERİ & ALIŞTIRMALARI
 # ==============================================================================
 
@@ -303,147 +195,61 @@ Günlük Tahmini Karbon Salınımı: 120.5 kg CO2
 # GÖREV 4 (Tasarım & Moodboard Renk Paleti):
 # EkoKampüs için seçtiğiniz doğa dostu 3-4 renk kodunu (örn: #2ecc71, #27ae60) 
 # ve 1 yazı tipi adını ekrana yazdıracak Python kodunu yazın.`
-            },
-            notesMarkdown: `### 🎯 Hafta 1 Ders Planı & Kazanımlar (EkoKampüs):
-- **Ders 1 (Okul Krokisi ve Bölge Haritalama):**
-  - SKA 4 (Nitelikli Eğitim), SKA 11 (Sürdürülebilir Şehirler) ve SKA 12 (Sorumlu Üretim/Tüketim).
-  - Okul krokisi üzerinde 5 ana bölge: *Kantin, Sınıf/Enerji, Ulaşım, Atık, Bahçe/Yeşil Alan*.
-- **Ders 2 (Colab, Algoritma ve Akış Şeması):**
-  - Akış şeması: *Başla → Bölge seç → Soru sor → Puan hesapla → Öneri sun → Bitir*.
-  - Google Colab arayüzü ve ilk \`print()\` fonksiyonunun çalıştırılması.
-- **Ders 3 (Python Değişkenler ve Veri Tipleri):**
-  - Değişken isimlendirme kuralları (snake_case, harf/alt çizgi ile başlama, Türkçe karakter kullanmama).
-  - Temel veri tipleri: \`str\`, \`int\`, \`float\`, \`bool\` ve \`type()\` kontrolleri.
-  - Tip dönüşümü (type casting): \`int("90")\`, \`float("120.5")\`, \`str(sayi)\`.
-  - \`TypeError: can only concatenate str to str\` hatasının çözümü.
-- **Ders 4 (Grafik Tasarım Temelleri & Dijital Moodboard):**
-  - Canva ile 3-4 renkli palet, 1 yazı tipi ve telif kurallarına uygun görsel kolajı oluşturma.
-  - Dosya türleri (.png, .jpg, .svg) ve ekran tasarımına hazırlık.`,
-            teacherAiNotes: `🤖 Yapay Zeka Eğitmen Tavsiyeleri & Kritik Noktalar:
-- **Kritik Yanılgı:** Öğrenciler \`print("Ulaşım puanın: " + yeni_puan)\` yazdıklarında Python metin ile tam sayıyı doğrudan birleştiremez. Bu hatayı tahtada bilerek aldırın ve \`TypeError\` ile nasıl başa çıkacaklarını (str() veya f-string) gösterin.
-- **Hafta 2 Bağlantısı:** Öğrencilere hatırlatın: "Hafta 2'de kullanıcıdan \`input()\` ile veri alacağız. \`input()\` her zaman metin (str) döndürdüğü için bu tip dönüşümleri projenin belkemiği olacak."
-- **Sınıf İçi Soru:** "Kantinde tabağını bitiren bir öğrenciye neden düşük öncelikli ceza, yüksek çevre puanı veririz?"
-- **Tasarım:** Canva moodboard çalışmasında telif haklarına dikkat çekin; telifsiz veya kaynak belirtilmiş görseller kullandırın.`
+                },
+                {
+                    id: "curriculum_notes",
+                    title: "Kazanımlar & 4 Ders",
+                    type: "text",
+                    filename: "kazanimlar.md",
+                    language: "markdown",
+                    content: `### 🎯 Hafta 1 Ders Planı & Kazanımlar (EkoKampüs)
+
+#### 1. Ders: Okul Krokisi ve Bölge Haritalama
+- SKA 4 (Nitelikli Eğitim), SKA 11 (Sürdürülebilir Şehirler) ve SKA 12 (Sorumlu Tüketim).
+- Okul krokisi üzerinde 5 ana bölge: **Kantin, Sınıf/Enerji, Ulaşım, Atık, Bahçe/Yeşil Alan**.
+
+#### 2. Ders: Colab, Algoritma ve Akış Şeması
+- EkoKampüs akış şeması: **Başla → Bölge seç → Soru sor → Puan hesapla → Öneri sun → Bitir**.
+- Google Colab ortamı ve ilk \`print()\` komutlarının çalıştırılması.
+
+#### 3. Ders: Python Değişkenler ve Veri Tipleri
+- Değişken isimlendirme kuralları (snake_case, boşluk ve Türkçe karakter kullanmama).
+- Temel veri tipleri: \`str\`, \`int\`, \`float\`, \`bool\` ve \`type()\` kontrolleri.
+- Tip dönüşümü: \`int("90")\`, \`float("120.5")\`, \`str(sayi)\`.
+- \`TypeError\` hatası ve çözümü.
+
+#### 4. Ders: Grafik Tasarım Temelleri & Dijital Moodboard
+- Canva ile 3-4 renkli doğa paleti, 1 yazı tipi ve telif kurallarına uygun görsel kolajı.
+- Dosya türleri (.png, .jpg, .svg) ve ekran tasarımına hazırlık.`
+                },
+                {
+                    id: "teacher_tips",
+                    title: "Eğitmen Rehberi",
+                    type: "notes",
+                    filename: "egitmen_notlari.md",
+                    language: "markdown",
+                    content: `🤖 Yapay Zeka Eğitmen Tavsiyeleri & Kritik Noktalar:
+
+1. **Kritik Yanılgı:** Öğrenciler \`print("Ulaşım puanın: " + yeni_puan)\` yazdıklarında Python metin ile tam sayıyı doğrudan birleştiremez. Bu hatayı tahtada bilerek aldırın ve \`TypeError\` ile nasıl başa çıkacaklarını (str() veya f-string) gösterin.
+
+2. **Hafta 2 Bağlantısı:** Öğrencilere hatırlatın: "Hafta 2'de kullanıcıdan \`input()\` ile veri alacağız. \`input()\` her zaman metin (str) döndürdüğü için bu tip dönüşümleri projenin belkemiği olacak."
+
+3. **Sınıf İçi Soru:** "Kantinde tabağını bitiren bir öğrenciye neden düşük öncelikli ceza, yüksek çevre puanı veririz?"
+
+4. **Tasarım:** Canva moodboard çalışmasında telif haklarına dikkat çekin; telifsiz veya kaynak belirtilmiş görseller kullandırın.`
+                }
+            ]
         },
-        {
-            week: 2,
-            title: "Parametreler, Aşırı Yükleme (Overloading) ve Kapsam",
-            summary: "Aynı isimde farklı parametreli metotlar (Overloading), varsayılan parametreler ve Scope kuralları.",
+        // Haftalar 2-8: clean placeholders without fake data
+        ...Array.from({ length: 7 }, (_, i) => ({
+            week: i + 2,
+            title: `Hafta ${i + 2} Ders Planı`,
+            summary: "Bu hafta için henüz ders planı tanımlanmadı. Google Docs linki veya içerik ekleyebilirsiniz.",
+            hasRealData: false,
             docUrl: "",
-            codeFile: {
-                filename: "MethodOverloading.cs",
-                language: "csharp",
-                code: `using System;
-
-class Program 
-{
-    // Aynı isimde, farklı parametre tipleri
-    static int Topla(int a, int b) 
-    {
-        return a + b;
-    }
-
-    static double Topla(double a, double b) 
-    {
-        return a + b;
-    }
-
-    static int Topla(int a, int b, int c) 
-    {
-        return a + b + c;
-    }
-
-    static void Main() 
-    {
-        Console.WriteLine(Topla(5, 10));        // int versiyon
-        Console.WriteLine(Topla(3.5, 4.2));     // double versiyon
-        Console.WriteLine(Topla(1, 2, 3));      // 3 parametreli versiyon
-    }
-}`,
-                output: `15\n7.7\n6`
-            },
-            tasks: { filename: "Gorevler.cs", code: `// Farklı sayıda parametre alan Carp metotlarını overload edin.` },
-            notesMarkdown: `Method Overloading sayesinde aynı işi yapan metotlara tek isim verilir.`,
-            teacherAiNotes: `Console.WriteLine metodunun da bir overload örneği olduğunu belirtin (hem int hem string basabilmesi).`
-        },
-        {
-            week: 3,
-            title: "Diziler ve Koleksiyonlar ile Veri Yönetimi",
-            summary: "Tek ve çok boyutlu diziler, List<T> yapısı, foreach döngüleri ve dinamik eleman yönetimi.",
-            docUrl: "",
-            codeFile: {
-                filename: "Koleksiyonlar.cs",
-                language: "csharp",
-                code: `using System;
-using System.Collections.Generic;
-
-class Program 
-{
-    static void Main() 
-    {
-        List<string> envanter = new List<string>();
-        envanter.Add("Kılıç");
-        envanter.Add("Kalkan");
-        envanter.Add("İksir");
-
-        Console.WriteLine($"Toplam Eşya: {envanter.Count}");
-        foreach (string esya in envanter) 
-        {
-            Console.WriteLine($"- {esya}");
-        }
-    }
-}`,
-                output: `Toplam Eşya: 3\n- Kılıç\n- Kalkan\n- İksir`
-            },
-            tasks: { filename: "Gorevler.cs", code: `// Listeden belirli bir eşyayı silen ve güncel listeyi yazdıran kodu yazın.` },
-            notesMarkdown: `Sabit boyutlu diziler (Array) ile dinamik List<T> farkı.`,
-            teacherAiNotes: `Oyun envanteri benzetmesi konuyu çok akılda kalıcı kılar.`
-        },
-        {
-            week: 4,
-            title: "Nesne Yönelimli Programlamaya (OOP) Giriş",
-            summary: "Sınıf (Class) ve Nesne (Object) mantığı, field/property tanımları, Constructor (Yapıcı Metot).",
-            docUrl: "",
-            codeFile: {
-                filename: "OopGiris.cs",
-                language: "csharp",
-                code: `using System;
-
-class Karakter 
-{
-    public string Ad;
-    public int Can;
-
-    public Karakter(string ad, int can) 
-    {
-        this.Ad = ad;
-        this.Can = can;
-    }
-
-    public void BilgiVer() 
-    {
-        Console.WriteLine($"Kahraman: {Ad}, Can: {Can}");
-    }
-}
-
-class Program 
-{
-    static void Main() 
-    {
-        Karakter k1 = new Karakter("Savaşçı", 100);
-        k1.BilgiVer();
-    }
-}`,
-                output: `Kahraman: Savaşçı, Can: 100`
-            },
-            tasks: { filename: "Gorevler.cs", code: `// Dusman adında bir sınıf oluşturup can ve hasar özellikleri ekleyin.` },
-            notesMarkdown: `Class bir şablon / mimari çizimdir, Object ise o çizimden inşa edilen evdir.`,
-            teacherAiNotes: `Kalıp ve kurabiye örneği veya mimari plan ve bina örneği verin.`
-        },
-        { week: 5, title: "Kapsülleme (Encapsulation) & Erişim Belirteçleri", summary: "public, private anahtar sözcükleri, Getter/Setter metodları ve veri güvenliği.", docUrl: "", codeFile: { filename: "Kapsulleme.cs", language: "csharp", code: `class BankaHesabi {\n    private double bakiye;\n    public void ParaYatir(double miktar) { if(miktar > 0) bakiye += miktar; }\n    public double BakiyeGoster() { return bakiye; }\n}`, output: `[Banka Hesabı Kapsüllendi]` }, tasks: { filename: "Gorevler.cs", code: `// Negatif değer atanmasını engelleyen bir Can property'si yazın.` }, notesMarkdown: `Doğrudan değişken manipülasyonunu engelleme.`, teacherAiNotes: `Arabanın motoruna doğrudan dokunmak yerine pedala basmak benzetmesi.` },
-        { week: 6, title: "Kalıtım (Inheritance) ve Çok Biçimlilik (Polymorphism)", summary: "Temel sınıf (Base Class) ve Türetilmiş sınıf (Derived Class), override ve virtual kullanımı.", docUrl: "", codeFile: { filename: "Kalitim.cs", language: "csharp", code: `class Hayvan { public virtual void SesCikar() { Console.WriteLine("Ses"); } }\nclass Kopek : Hayvan { public override void SesCikar() { Console.WriteLine("Hav hav!"); } }`, output: `Hav hav!` }, tasks: { filename: "Gorevler.cs", code: `// Kedi sınıfı oluşturup SesCikar metodunu override edin.` }, notesMarkdown: `Kod tekrarını sınıflar arasında önleme hiyerarşisi.`, teacherAiNotes: `Aile soy ağacı benzetmesini kullanın.` },
-        { week: 7, title: "Hata Yönetimi (Try-Catch) ve İstisnalar", summary: "Exception handling, çalışma zamanı hatalarını güvenli şekilde yönetme.", docUrl: "", codeFile: { filename: "HataYonetimi.cs", language: "csharp", code: `try {\n    int a = 10, b = 0;\n    int sonuc = a / b;\n} catch (DivideByZeroException) {\n    Console.WriteLine("Sıfıra bölme hatası yakalandı!");\n}`, output: `Sıfıra bölme hatası yakalandı!` }, tasks: { filename: "Gorevler.py", code: `// Dizi sınırlarını aşma hatasını (IndexOutOfRange) yakalayın.` }, notesMarkdown: `Programın çökmesini engelleme ve loglama.`, teacherAiNotes: `Emniyet kemeri benzetmesi yapın.` },
-        { week: 8, title: "İleri Düzey Proje Geliştirme & Dönem Sonu Sunumu", summary: "Öğrenilen tüm OOP prensiplerinin birleştirildiği kapsamlı final projesi.", docUrl: "", codeFile: { filename: "FinalProje.cs", language: "csharp", code: `Console.WriteLine("=== SEVİYE 3 FİNAL PROJE GELİŞTİRME ===");\nConsole.WriteLine("OOP Mimarisi başarıyla kuruldu.");`, output: `=== SEVİYE 3 FİNAL PROJE GELİŞTİRME ===\nOOP Mimarisi başarıyla kuruldu.` }, tasks: { filename: "Gorevler.cs", code: `// Proje dokümantasyonunu ve kod sunumunuzu hazırlayın.` }, notesMarkdown: `Öğrenci proje sunumları ve portfolyo hazırlığı.`, teacherAiNotes: `Her projeye mimari açıdan yapıcı geri bildirimler sunun.` }
+            category: "Genel",
+            tabs: []
+        }))
     ]
 };
 
@@ -451,18 +257,9 @@ class Program
 function getDocEmbedUrl(url: string): string {
     if (!url) return "";
     const trimmed = url.trim();
-    // If it already contains /preview
-    if (trimmed.includes("/preview")) {
-        return trimmed;
-    }
-    // If it has /edit
-    if (trimmed.includes("/edit")) {
-        return trimmed.replace(/\/edit(\?.*)?$/, "/preview");
-    }
-    // If it is a generic docs document link
-    if (trimmed.includes("docs.google.com/document/d/")) {
-        return trimmed.replace(/\/$/, "") + "/preview";
-    }
+    if (trimmed.includes("/preview")) return trimmed;
+    if (trimmed.includes("/edit")) return trimmed.replace(/\/edit(\?.*)?$/, "/preview");
+    if (trimmed.includes("docs.google.com/document/d/")) return trimmed.replace(/\/$/, "") + "/preview";
     return trimmed;
 }
 
@@ -470,60 +267,110 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
     const [selectedLevel, setSelectedLevel] = useState<LevelType>("Seviye 3");
     const [selectedWeek, setSelectedWeek] = useState<number>(1);
     
+    // Theme Mode: "dark" or "light"
+    const [theme, setTheme] = useState<"dark" | "light">("dark");
+
     // Custom doc URLs stored in localStorage
     const [customDocUrls, setCustomDocUrls] = useState<Record<string, string>>({});
     const [isEditingDocUrl, setIsEditingDocUrl] = useState(false);
     const [inputDocUrl, setInputDocUrl] = useState("");
 
+    // Custom week plans edited by user directly on the platform
+    const [customPlans, setCustomPlans] = useState<Record<string, WeekPlan>>({});
+    
+    // Edit mode for right-side panel
+    const [isEditingContent, setIsEditingContent] = useState(false);
+    const [editForm, setEditForm] = useState<{
+        title: string;
+        summary: string;
+        category: string;
+        tabs: PlanTab[];
+    }>({ title: "", summary: "", category: "Genel", tabs: [] });
+
     // Active tab in right-side code/AI compiler panel
-    const [activeCodeTab, setActiveCodeTab] = useState<"code" | "tasks" | "notes" | "ai">("code");
+    const [activeTabId, setActiveTabId] = useState<string>("");
     const [copied, setCopied] = useState(false);
     const [showTerminal, setShowTerminal] = useState(true);
 
     // Fullscreen expansion modes (none, left, right)
     const [expandMode, setExpandMode] = useState<"none" | "left" | "right">("none");
 
-    // Load custom doc URLs from localStorage
+    // Load theme, custom doc URLs and custom plans from localStorage
     useEffect(() => {
         try {
-            const saved = localStorage.getItem("lesson_plan_doc_urls");
-            if (saved) {
-                setCustomDocUrls(JSON.parse(saved));
+            const savedTheme = localStorage.getItem("lesson_plans_theme");
+            if (savedTheme === "light" || savedTheme === "dark") {
+                setTheme(savedTheme);
+            }
+
+            const savedUrls = localStorage.getItem("lesson_plan_doc_urls");
+            if (savedUrls) {
+                setCustomDocUrls(JSON.parse(savedUrls));
+            }
+
+            const savedPlans = localStorage.getItem("lesson_plan_custom_contents");
+            if (savedPlans) {
+                setCustomPlans(JSON.parse(savedPlans));
             }
         } catch (e) {
-            console.error("Failed to load custom doc urls:", e);
+            console.error("Failed to load local storage data:", e);
         }
     }, []);
 
-    // Get current week plan
+    // Toggle theme
+    const toggleTheme = () => {
+        const nextTheme = theme === "dark" ? "light" : "dark";
+        setTheme(nextTheme);
+        try {
+            localStorage.setItem("lesson_plans_theme", nextTheme);
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    // Current plan calculation
+    const planKey = `${selectedLevel}-W${selectedWeek}`;
     const currentWeekPlan = useMemo(() => {
+        if (customPlans[planKey]) {
+            return customPlans[planKey];
+        }
         const list = INITIAL_CURRICULUM[selectedLevel] || [];
-        return list.find(p => p.week === selectedWeek) || list[0] || {
-            week: 1,
-            title: "Ders Planı",
-            summary: "",
-            codeFile: { filename: "main.cs", language: "csharp", code: "", output: "" },
-            tasks: { filename: "gorevler.cs", code: "" },
-            notesMarkdown: "",
-            teacherAiNotes: ""
+        const found = list.find(p => p.week === selectedWeek);
+        if (found) return found;
+        return {
+            week: selectedWeek,
+            title: `Hafta ${selectedWeek} Ders Planı`,
+            summary: "Henüz plan eklenmedi.",
+            hasRealData: false,
+            tabs: []
         };
-    }, [selectedLevel, selectedWeek]);
+    }, [selectedLevel, selectedWeek, customPlans, planKey]);
 
     // Active Google Docs URL (custom override or default)
-    const activeDocKey = `${selectedLevel}-W${selectedWeek}`;
-    const effectiveDocUrl = customDocUrls[activeDocKey] ?? currentWeekPlan.docUrl ?? "";
+    const effectiveDocUrl = customDocUrls[planKey] ?? currentWeekPlan.docUrl ?? "";
     const embedUrl = getDocEmbedUrl(effectiveDocUrl);
 
-    // When active week changes, sync edit input
+    // Sync active tab ID when week changes
     useEffect(() => {
+        if (currentWeekPlan.tabs && currentWeekPlan.tabs.length > 0) {
+            setActiveTabId(currentWeekPlan.tabs[0].id);
+        } else {
+            setActiveTabId("");
+        }
         setInputDocUrl(effectiveDocUrl);
         setIsEditingDocUrl(false);
+        setIsEditingContent(false);
         setCopied(false);
-    }, [selectedLevel, selectedWeek, effectiveDocUrl]);
+    }, [selectedLevel, selectedWeek, currentWeekPlan, effectiveDocUrl]);
+
+    // Active tab object
+    const activeTab = useMemo(() => {
+        return currentWeekPlan.tabs?.find(t => t.id === activeTabId) || currentWeekPlan.tabs?.[0] || null;
+    }, [currentWeekPlan, activeTabId]);
 
     // Save custom Google Docs link
     const handleSaveDocUrl = () => {
-        const next = { ...customDocUrls, [activeDocKey]: inputDocUrl.trim() };
+        const next = { ...customDocUrls, [planKey]: inputDocUrl.trim() };
         setCustomDocUrls(next);
         try {
             localStorage.setItem("lesson_plan_doc_urls", JSON.stringify(next));
@@ -533,37 +380,119 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
         setIsEditingDocUrl(false);
     };
 
-    // Copy active code content
-    const handleCopy = () => {
-        let textToCopy = "";
-        if (activeCodeTab === "code") textToCopy = currentWeekPlan.codeFile.code;
-        else if (activeCodeTab === "tasks") textToCopy = currentWeekPlan.tasks.code;
-        else if (activeCodeTab === "notes") textToCopy = currentWeekPlan.notesMarkdown;
-        else if (activeCodeTab === "ai") textToCopy = currentWeekPlan.teacherAiNotes;
+    // Open Edit Mode for Right Content
+    const handleStartEditing = () => {
+        setEditForm({
+            title: currentWeekPlan.title,
+            summary: currentWeekPlan.summary,
+            category: currentWeekPlan.category || "Genel",
+            tabs: currentWeekPlan.tabs && currentWeekPlan.tabs.length > 0 
+                ? JSON.parse(JSON.stringify(currentWeekPlan.tabs))
+                : [
+                    {
+                        id: "tab_1",
+                        title: "Ders İçeriği & Notlar",
+                        type: "text",
+                        filename: "icerik.md",
+                        language: "markdown",
+                        content: "# Bu Hafta Anlatılacaklar\n- Konu başlıkları ve açıklamaları buraya yazabilirsiniz."
+                    }
+                ]
+        });
+        setIsEditingContent(true);
+    };
 
-        navigator.clipboard.writeText(textToCopy);
+    // Save Content Changes
+    const handleSaveContent = () => {
+        const updatedPlan: WeekPlan = {
+            ...currentWeekPlan,
+            title: editForm.title.trim() || `Hafta ${selectedWeek} Planı`,
+            summary: editForm.summary.trim(),
+            category: editForm.category.trim(),
+            hasRealData: true,
+            tabs: editForm.tabs
+        };
+
+        const nextPlans = { ...customPlans, [planKey]: updatedPlan };
+        setCustomPlans(nextPlans);
+
+        try {
+            localStorage.setItem("lesson_plan_custom_contents", JSON.stringify(nextPlans));
+        } catch (e) {
+            console.error(e);
+        }
+
+        setIsEditingContent(false);
+        if (updatedPlan.tabs.length > 0) {
+            setActiveTabId(updatedPlan.tabs[0].id);
+        }
+    };
+
+    // Reset Custom Content for current week
+    const handleResetContent = () => {
+        if (!confirm("Bu hafta için yaptığınız özel düzenlemeleri sıfırlamak istediğinize emin misiniz?")) return;
+        const nextPlans = { ...customPlans };
+        delete nextPlans[planKey];
+        setCustomPlans(nextPlans);
+        try {
+            localStorage.setItem("lesson_plan_custom_contents", JSON.stringify(nextPlans));
+        } catch (e) {
+            console.error(e);
+        }
+        setIsEditingContent(false);
+    };
+
+    // Add new tab in edit form
+    const handleAddTab = (type: ContentType) => {
+        const newId = `tab_${Date.now()}`;
+        const newTab: PlanTab = {
+            id: newId,
+            title: type === "code" ? "kod_ornek.py" : type === "arduino" ? "arduino_devre.ino" : type === "unity" ? "GameController.cs" : "Etkinlik & Bilgiler",
+            type: type,
+            filename: type === "code" ? "main.py" : type === "arduino" ? "circuit.ino" : type === "unity" ? "script.cs" : "notlar.md",
+            language: type === "code" ? "python" : type === "arduino" ? "cpp" : type === "unity" ? "csharp" : "markdown",
+            content: type === "code" 
+                ? "# Örnek kodunuzu buraya yazın\nprint('Merhaba!')" 
+                : type === "arduino"
+                ? "// Arduino C++ Devre Kodu\nvoid setup() {\n  pinMode(13, OUTPUT);\n}\nvoid loop() {\n  digitalWrite(13, HIGH);\n  delay(1000);\n  digitalWrite(13, LOW);\n  delay(1000);\n}"
+                : type === "unity"
+                ? "using UnityEngine;\n\npublic class Controller : MonoBehaviour {\n    void Start() {\n        Debug.Log(\"Oyun Başladı\");\n    }\n}"
+                : "### Ders Açıklamaları ve Etkinlikler\n- Öğrencilere aktarılacak bilgiler..."
+        };
+        setEditForm(prev => ({ ...prev, tabs: [...prev.tabs, newTab] }));
+    };
+
+    // Delete a tab in edit form
+    const handleDeleteTab = (index: number) => {
+        setEditForm(prev => ({
+            ...prev,
+            tabs: prev.tabs.filter((_, i) => i !== index)
+        }));
+    };
+
+    // Copy active content
+    const handleCopy = () => {
+        if (!activeTab) return;
+        navigator.clipboard.writeText(activeTab.content);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
 
-    // Syntax colorizer helper for code lines
-    const renderColoredLine = (line: string, lang: string) => {
+    // Syntax colorizer helper for code lines (adapts to light & dark mode)
+    const renderColoredLine = (line: string, isLight: boolean) => {
         if (!line) return <span>&nbsp;</span>;
 
-        // Comments
         const trimmed = line.trimStart();
         if (trimmed.startsWith("//") || trimmed.startsWith("#")) {
-            return <span className="text-slate-400 italic font-mono">{line}</span>;
+            return <span className={isLight ? "text-slate-500 italic font-mono" : "text-slate-400 italic font-mono"}>{line}</span>;
         }
 
-        // Keywords detection
         const keywords = [
             "using", "class", "public", "private", "protected", "static", "void", "int", "string", 
             "bool", "double", "float", "return", "if", "else", "for", "foreach", "while", "new", 
-            "def", "import", "from", "try", "catch", "virtual", "override", "global"
+            "def", "import", "from", "try", "catch", "virtual", "override", "global", "setup", "loop", "pinMode", "digitalWrite"
         ];
         
-        // Tokenize by word boundaries, strings, and symbols
         const parts = line.split(/(\"[^\"]*\"|\'[^\']*\'|[a-zA-Z_][a-zA-Z0-9_]*|==|!=|<=|>=|=>|\/\/.+)/g);
 
         return (
@@ -571,36 +500,55 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                 {parts.map((token, i) => {
                     if (!token) return null;
                     if (token.startsWith("//") || token.startsWith("#")) {
-                        return <span key={i} className="text-slate-400 italic">{token}</span>;
+                        return <span key={i} className={isLight ? "text-slate-500 italic" : "text-slate-400 italic"}>{token}</span>;
                     }
                     if ((token.startsWith('"') && token.endsWith('"')) || (token.startsWith("'") && token.endsWith("'"))) {
-                        return <span key={i} className="text-emerald-400 font-medium">{token}</span>;
+                        return <span key={i} className={isLight ? "text-emerald-700 font-medium" : "text-emerald-400 font-medium"}>{token}</span>;
                     }
                     if (keywords.includes(token)) {
-                        return <span key={i} className="text-indigo-400 font-semibold">{token}</span>;
+                        return <span key={i} className={isLight ? "text-indigo-700 font-bold" : "text-indigo-400 font-semibold"}>{token}</span>;
                     }
-                    if (["Console", "List", "Math", "Program", "Karakter", "Hayvan", "Kopek", "Exception"].includes(token)) {
-                        return <span key={i} className="text-sky-300 font-medium">{token}</span>;
+                    if (["Console", "List", "Math", "Program", "Karakter", "Serial", "GameObject", "MonoBehaviour", "Debug"].includes(token)) {
+                        return <span key={i} className={isLight ? "text-sky-700 font-medium" : "text-sky-300 font-medium"}>{token}</span>;
                     }
-                    if (["WriteLine", "SelamVer", "SkorHesapla", "SeviyeGecildiMi", "Main", "Topla", "Add", "print"].includes(token)) {
-                        return <span key={i} className="text-amber-300">{token}</span>;
+                    if (["WriteLine", "SelamVer", "SkorHesapla", "Main", "Topla", "Add", "print", "Log", "delay"].includes(token)) {
+                        return <span key={i} className={isLight ? "text-amber-700" : "text-amber-300"}>{token}</span>;
                     }
                     if (/^\d+(\.\d+)?$/.test(token)) {
-                        return <span key={i} className="text-orange-300">{token}</span>;
+                        return <span key={i} className={isLight ? "text-orange-700" : "text-orange-300"}>{token}</span>;
                     }
-                    return <span key={i} className="text-slate-200">{token}</span>;
+                    return <span key={i} className={isLight ? "text-slate-800" : "text-slate-200"}>{token}</span>;
                 })}
             </span>
         );
     };
 
     const levels: LevelType[] = ["Seviye 1", "Seviye 2", "Seviye 3"];
+    const isLight = theme === "light";
+
+    // Tab Type Icon Helper
+    const getTabIcon = (type: ContentType) => {
+        switch (type) {
+            case "code": return <FileCode className="w-3.5 h-3.5 text-indigo-400" />;
+            case "arduino": return <Cpu className="w-3.5 h-3.5 text-emerald-400" />;
+            case "unity": return <Gamepad2 className="w-3.5 h-3.5 text-blue-400" />;
+            case "tasks": return <ListChecks className="w-3.5 h-3.5 text-amber-400" />;
+            case "notes": return <Sparkles className="w-3.5 h-3.5 text-violet-400" />;
+            default: return <Info className="w-3.5 h-3.5 text-sky-400" />;
+        }
+    };
 
     return (
-        <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans select-text">
+        <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 select-text ${
+            isLight ? "bg-slate-100 text-slate-900" : "bg-slate-900 text-slate-100"
+        }`}>
             
             {/* Top Navigation & Controls Bar */}
-            <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-40 px-4 py-3 shrink-0">
+            <header className={`border-b sticky top-0 z-40 px-4 py-3 shrink-0 backdrop-blur-md transition-colors ${
+                isLight 
+                    ? "bg-white/95 border-slate-200 text-slate-900 shadow-xs" 
+                    : "bg-slate-950/80 border-slate-800 text-white"
+            }`}>
                 <div className="max-w-[1920px] mx-auto flex flex-wrap items-center justify-between gap-3">
                     
                     {/* Left: Back & Title */}
@@ -609,34 +557,43 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                             variant="ghost"
                             size="sm"
                             onClick={onBackToHub}
-                            className="text-slate-400 hover:text-white hover:bg-slate-800 h-9 px-2.5 rounded-lg text-xs"
+                            className={`h-9 px-2.5 rounded-lg text-xs transition-colors ${
+                                isLight 
+                                    ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100" 
+                                    : "text-slate-400 hover:text-white hover:bg-slate-800"
+                            }`}
                         >
                             <ArrowLeft className="w-4 h-4 mr-1.5" />
                             Ana Menü
                         </Button>
-                        <div className="h-4 w-px bg-slate-800" />
+                        <div className={`h-4 w-px ${isLight ? "bg-slate-200" : "bg-slate-800"}`} />
                         <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                                isLight ? "bg-indigo-50 border border-indigo-200 text-indigo-600" : "bg-indigo-600/20 border border-indigo-500/30 text-indigo-400"
+                            }`}>
                                 <BookOpen className="w-4 h-4" />
                             </div>
                             <div>
                                 <div className="flex items-center gap-2">
-                                    <h1 className="text-sm md:text-base font-bold text-white tracking-tight">
-                                        Ders Planları & Kod Çalışma Alanı
+                                    <h1 className="text-sm md:text-base font-bold tracking-tight">
+                                        Ders Planları & Çalışma Alanı
                                     </h1>
-                                    <span className="hidden md:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                                        Canlı Entegrasyon
+                                    <span className={`hidden md:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                                        isLight 
+                                            ? "bg-indigo-50 text-indigo-700 border border-indigo-200" 
+                                            : "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20"
+                                    }`}>
+                                        Sol: Plan • Sağ: İçerik & Kod
                                     </span>
                                 </div>
-                                <p className="text-[11px] text-slate-400 hidden sm:block">
-                                    Sol: Google Docs Planı • Sağ: Yapay Zeka Kod Derleyicisi & Notlar
-                                </p>
                             </div>
                         </div>
                     </div>
 
                     {/* Center: Level Switcher (Strictly Seviye 1, 2, 3) */}
-                    <div className="flex items-center bg-slate-900 p-1 rounded-xl border border-slate-800">
+                    <div className={`flex items-center p-1 rounded-xl border transition-colors ${
+                        isLight ? "bg-slate-100 border-slate-200" : "bg-slate-900 border-slate-800"
+                    }`}>
                         {levels.map((lvl) => {
                             const isSelected = selectedLevel === lvl;
                             return (
@@ -652,7 +609,9 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                                                 : lvl === "Seviye 2"
                                                 ? "bg-blue-600 text-white shadow-sm"
                                                 : "bg-indigo-600 text-white shadow-sm"
-                                            : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
+                                            : isLight 
+                                                ? "text-slate-600 hover:text-slate-900 hover:bg-white" 
+                                                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
                                         }
                                     `}
                                 >
@@ -665,13 +624,42 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                         })}
                     </div>
 
-                    {/* Right: Switch to Mesai & View Controls */}
+                    {/* Right: Theme Toggle (Sun/Moon), Mesai Button */}
                     <div className="flex items-center gap-2">
+                        {/* Theme Toggle Button with Sun/Moon */}
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={toggleTheme}
+                            className={`h-9 px-2.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
+                                isLight 
+                                    ? "bg-white border-slate-200 text-slate-700 hover:bg-slate-100 hover:text-slate-900" 
+                                    : "bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-white"
+                            }`}
+                            title={isLight ? "Koyu Mod'a geç" : "Açık (Gündüz) Mod'a geç"}
+                        >
+                            {isLight ? (
+                                <>
+                                    <Moon className="w-4 h-4 text-indigo-600" />
+                                    <span>Koyu Mod</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Sun className="w-4 h-4 text-amber-400" />
+                                    <span>Açık Mod</span>
+                                </>
+                            )}
+                        </Button>
+
                         <Button
                             variant="outline"
                             size="sm"
                             onClick={onSwitchToMesai}
-                            className="bg-slate-900 border-slate-800 hover:bg-slate-800 text-emerald-400 hover:text-emerald-300 text-xs h-9 font-medium"
+                            className={`text-xs h-9 font-medium ${
+                                isLight 
+                                    ? "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100" 
+                                    : "bg-slate-900 border-slate-800 hover:bg-slate-800 text-emerald-400 hover:text-emerald-300"
+                            }`}
                         >
                             <Clock className="w-3.5 h-3.5 mr-1.5" />
                             Mesai Takip
@@ -681,13 +669,18 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                 </div>
 
                 {/* Week Selector Bar (Hafta 1 ... Hafta 8) */}
-                <div className="max-w-[1920px] mx-auto mt-2.5 pt-2.5 border-t border-slate-800/60 flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
-                    <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mr-1 shrink-0">
+                <div className={`max-w-[1920px] mx-auto mt-2.5 pt-2.5 border-t flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin ${
+                    isLight ? "border-slate-200" : "border-slate-800/60"
+                }`}>
+                    <span className={`text-[11px] font-semibold uppercase tracking-wider mr-1 shrink-0 ${
+                        isLight ? "text-slate-500" : "text-slate-400"
+                    }`}>
                         Haftalar:
                     </span>
                     {(INITIAL_CURRICULUM[selectedLevel] || []).map((item) => {
                         const isWeekSelected = selectedWeek === item.week;
-                        const hasCustomDoc = Boolean(customDocUrls[`${selectedLevel}-W${item.week}`] || item.docUrl);
+                        const key = `${selectedLevel}-W${item.week}`;
+                        const hasCustom = Boolean(customPlans[key]?.hasRealData || customDocUrls[key] || item.hasRealData);
                         return (
                             <button
                                 key={item.week}
@@ -696,14 +689,18 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                                 className={`
                                     px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0
                                     ${isWeekSelected
-                                        ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 font-bold"
-                                        : "bg-slate-900/60 text-slate-400 hover:bg-slate-800 hover:text-slate-200 border border-slate-800/60"
+                                        ? isLight 
+                                            ? "bg-indigo-600 text-white shadow-xs font-bold" 
+                                            : "bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 font-bold"
+                                        : isLight 
+                                            ? "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 border border-slate-200" 
+                                            : "bg-slate-900/60 text-slate-400 hover:bg-slate-800 hover:text-slate-200 border border-slate-800/60"
                                     }
                                 `}
                             >
                                 <span>Hafta {item.week}</span>
-                                {hasCustomDoc && (
-                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" title="Google Docs planı ekli" />
+                                {hasCustom && (
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" title="Gerçek içerik / plan ekli" />
                                 )}
                             </button>
                         );
@@ -712,19 +709,28 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
             </header>
 
             {/* Sub-header: Current Week Title & Quick Info */}
-            <div className="bg-slate-950/40 border-b border-slate-800/80 px-4 py-2 shrink-0">
+            <div className={`border-b px-4 py-2 shrink-0 transition-colors ${
+                isLight ? "bg-white/60 border-slate-200" : "bg-slate-950/40 border-slate-800/80"
+            }`}>
                 <div className="max-w-[1920px] mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="flex items-center gap-2 overflow-hidden">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shrink-0">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider shrink-0 ${
+                            isLight 
+                                ? "bg-indigo-50 text-indigo-700 border border-indigo-200" 
+                                : "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
+                        }`}>
                             {selectedLevel} • Hafta {currentWeekPlan.week}
                         </span>
-                        <h2 className="text-xs md:text-sm font-semibold text-slate-200 truncate">
+                        <h2 className={`text-xs md:text-sm font-semibold truncate ${isLight ? "text-slate-900" : "text-slate-200"}`}>
                             {currentWeekPlan.title}
                         </h2>
-                        <span className="text-slate-500 text-xs hidden md:inline">•</span>
-                        <p className="text-xs text-slate-400 truncate hidden md:block">
-                            {currentWeekPlan.summary}
-                        </p>
+                        {currentWeekPlan.category && (
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full hidden sm:inline-block ${
+                                isLight ? "bg-slate-200 text-slate-700" : "bg-slate-800 text-slate-300"
+                            }`}>
+                                {currentWeekPlan.category}
+                            </span>
+                        )}
                     </div>
 
                     {/* Split View Toggles */}
@@ -734,7 +740,9 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setExpandMode("none")}
-                                className="h-7 px-2 text-[11px] text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700"
+                                className={`h-7 px-2 text-[11px] ${
+                                    isLight ? "text-slate-700 bg-slate-200 hover:bg-slate-300" : "text-slate-300 bg-slate-800 hover:bg-slate-700"
+                                }`}
                             >
                                 <Minimize2 className="w-3 h-3 mr-1" />
                                 İki Paneli Gör
@@ -744,7 +752,11 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                             variant="ghost"
                             size="sm"
                             onClick={() => setExpandMode(expandMode === "left" ? "none" : "left")}
-                            className={`h-7 px-2 text-[11px] ${expandMode === "left" ? "bg-indigo-600 text-white" : "text-slate-400 hover:text-white hover:bg-slate-800"}`}
+                            className={`h-7 px-2 text-[11px] ${
+                                expandMode === "left" 
+                                    ? "bg-indigo-600 text-white" 
+                                    : isLight ? "text-slate-600 hover:bg-slate-200" : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                            }`}
                             title="Sol Paneli Büyüt (Google Docs)"
                         >
                             <FileText className="w-3 h-3 mr-1" />
@@ -754,17 +766,21 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                             variant="ghost"
                             size="sm"
                             onClick={() => setExpandMode(expandMode === "right" ? "none" : "right")}
-                            className={`h-7 px-2 text-[11px] ${expandMode === "right" ? "bg-indigo-600 text-white" : "text-slate-400 hover:text-white hover:bg-slate-800"}`}
-                            title="Sağ Paneli Büyüt (Kod Derleyicisi)"
+                            className={`h-7 px-2 text-[11px] ${
+                                expandMode === "right" 
+                                    ? "bg-indigo-600 text-white" 
+                                    : isLight ? "text-slate-600 hover:bg-slate-200" : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                            }`}
+                            title="Sağ Paneli Büyüt (İçerik & Kod)"
                         >
                             <Code2 className="w-3 h-3 mr-1" />
-                            {expandMode === "right" ? "Küçült" : "Yalnızca Kod"}
+                            {expandMode === "right" ? "Küçült" : "Yalnızca İçerik"}
                         </Button>
                     </div>
                 </div>
             </div>
 
-            {/* Main Content Area: Split Screen (Left: Google Docs, Right: Code/AI Editor) */}
+            {/* Main Content Area: Split Screen (Left: Google Docs, Right: Code/AI/Editor) */}
             <main className="flex-1 p-2 md:p-3 overflow-hidden">
                 <div className={`
                     h-[calc(100vh-165px)] min-h-[550px]
@@ -781,21 +797,27 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                     {/* LEFT HALF: Google Docs Document Preview & Management     */}
                     {/* ======================================================== */}
                     {expandMode !== "right" && (
-                        <div className="bg-slate-950 rounded-xl border border-slate-800 flex flex-col overflow-hidden shadow-xl">
+                        <div className={`rounded-xl border flex flex-col overflow-hidden shadow-sm transition-colors ${
+                            isLight ? "bg-white border-slate-200" : "bg-slate-950 border-slate-800"
+                        }`}>
                             
                             {/* Left Header */}
-                            <div className="bg-slate-900/90 border-b border-slate-800 px-3 py-2 flex items-center justify-between gap-2 shrink-0">
+                            <div className={`border-b px-3 py-2 flex items-center justify-between gap-2 shrink-0 ${
+                                isLight ? "bg-slate-50 border-slate-200" : "bg-slate-900/90 border-slate-800"
+                            }`}>
                                 <div className="flex items-center gap-2 min-w-0">
-                                    <div className="w-6 h-6 rounded bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
+                                    <div className={`w-6 h-6 rounded flex items-center justify-center shrink-0 ${
+                                        isLight ? "bg-blue-100 text-blue-600" : "bg-blue-500/20 text-blue-400"
+                                    }`}>
                                         <FileText className="w-3.5 h-3.5" />
                                     </div>
                                     <div className="min-w-0">
                                         <div className="flex items-center gap-1.5">
-                                            <span className="text-xs font-bold text-slate-200 truncate">
+                                            <span className={`text-xs font-bold truncate ${isLight ? "text-slate-800" : "text-slate-200"}`}>
                                                 Haftalık Ders Planı (Google Docs)
                                             </span>
                                             {embedUrl && (
-                                                <span className="w-2 h-2 rounded-full bg-emerald-400" title="Aktif Önizleme" />
+                                                <span className="w-2 h-2 rounded-full bg-emerald-500" title="Aktif Önizleme" />
                                             )}
                                         </div>
                                     </div>
@@ -808,7 +830,11 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                                             href={effectiveDocUrl}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-300 hover:text-white px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 transition-colors"
+                                            className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded transition-colors ${
+                                                isLight 
+                                                    ? "bg-slate-200 text-slate-700 hover:bg-slate-300" 
+                                                    : "bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700"
+                                            }`}
                                             title="Belgeyi yeni sekmede aç"
                                         >
                                             <ExternalLink className="w-3 h-3" />
@@ -818,7 +844,11 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                                     <button
                                         type="button"
                                         onClick={() => setIsEditingDocUrl(!isEditingDocUrl)}
-                                        className="inline-flex items-center gap-1 text-[11px] font-medium text-indigo-400 hover:text-indigo-300 px-2 py-1 rounded bg-indigo-500/10 hover:bg-indigo-500/20 transition-colors"
+                                        className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded transition-colors ${
+                                            isLight 
+                                                ? "bg-indigo-50 text-indigo-700 hover:bg-indigo-100" 
+                                                : "bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20"
+                                        }`}
                                         title="Bu haftanın Google Docs linkini değiştir veya ekle"
                                     >
                                         <Edit3 className="w-3 h-3" />
@@ -829,13 +859,19 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
 
                             {/* Google Docs URL Edit Drawer/Input */}
                             {isEditingDocUrl && (
-                                <div className="bg-slate-900 p-2.5 border-b border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                <div className={`p-2.5 border-b flex flex-col sm:flex-row items-stretch sm:items-center gap-2 ${
+                                    isLight ? "bg-slate-100 border-slate-200" : "bg-slate-900 border-slate-800"
+                                }`}>
                                     <div className="flex-1">
                                         <Input
                                             placeholder="Google Docs linki yapıştırın (https://docs.google.com/document/d/...)"
                                             value={inputDocUrl}
                                             onChange={(e) => setInputDocUrl(e.target.value)}
-                                            className="h-8 bg-slate-950 border-slate-700 text-xs text-slate-200 placeholder:text-slate-500"
+                                            className={`h-8 text-xs ${
+                                                isLight 
+                                                    ? "bg-white border-slate-300 text-slate-900" 
+                                                    : "bg-slate-950 border-slate-700 text-slate-200"
+                                            }`}
                                         />
                                     </div>
                                     <div className="flex items-center gap-1.5 self-end sm:self-auto">
@@ -851,7 +887,7 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                                             variant="ghost"
                                             size="sm"
                                             onClick={() => setIsEditingDocUrl(false)}
-                                            className="h-8 px-2 text-xs text-slate-400 hover:text-white"
+                                            className={`h-8 px-2 text-xs ${isLight ? "text-slate-600 hover:text-slate-900" : "text-slate-400 hover:text-white"}`}
                                         >
                                             İptal
                                         </Button>
@@ -860,7 +896,7 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                             )}
 
                             {/* Google Docs Embed Container */}
-                            <div className="flex-1 bg-slate-950 relative overflow-hidden flex flex-col">
+                            <div className="flex-1 relative overflow-hidden flex flex-col bg-white">
                                 {embedUrl ? (
                                     <div className="w-full h-full relative bg-white">
                                         <iframe
@@ -872,15 +908,19 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                                         />
                                     </div>
                                 ) : (
-                                    <div className="flex-1 flex flex-col items-center justify-center p-6 text-center text-slate-400">
-                                        <div className="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 mb-3">
+                                    <div className={`flex-1 flex flex-col items-center justify-center p-6 text-center ${
+                                        isLight ? "bg-slate-50 text-slate-500" : "bg-slate-950 text-slate-400"
+                                    }`}>
+                                        <div className={`w-12 h-12 rounded-2xl border flex items-center justify-center mb-3 ${
+                                            isLight ? "bg-white border-slate-200 text-slate-400" : "bg-slate-900 border-slate-800 text-slate-500"
+                                        }`}>
                                             <FileText className="w-6 h-6" />
                                         </div>
-                                        <h3 className="text-sm font-semibold text-slate-200 mb-1">
+                                        <h3 className={`text-sm font-semibold mb-1 ${isLight ? "text-slate-800" : "text-slate-200"}`}>
                                             Bu Hafta İçin Google Docs Linki Tanımlanmamış
                                         </h3>
-                                        <p className="text-xs text-slate-500 max-w-sm mb-4">
-                                            {selectedLevel} Hafta {selectedWeek} için Google Docs ders planı linkinizi ekleyerek burada doğrudan önizleyebilirsiniz.
+                                        <p className="text-xs max-w-sm mb-4 opacity-80">
+                                            {selectedLevel} Hafta {selectedWeek} için Google Docs plan linkinizi ekleyerek burada doğrudan önizleyebilirsiniz.
                                         </p>
                                         <Button
                                             size="sm"
@@ -895,8 +935,10 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                             </div>
 
                             {/* Left Footer Info */}
-                            <div className="bg-slate-900/60 border-t border-slate-800/80 px-3 py-1.5 flex items-center justify-between text-[11px] text-slate-500 shrink-0">
-                                <span>Google Docs Viewer Entegrasyonu</span>
+                            <div className={`border-t px-3 py-1.5 flex items-center justify-between text-[11px] shrink-0 ${
+                                isLight ? "bg-slate-50 border-slate-200 text-slate-500" : "bg-slate-900/60 border-slate-800/80 text-slate-500"
+                            }`}>
+                                <span>Google Docs Entegrasyonu</span>
                                 <span>{selectedLevel} • Hafta {selectedWeek}</span>
                             </div>
 
@@ -904,236 +946,462 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                     )}
 
                     {/* ======================================================== */}
-                    {/* RIGHT HALF: Code Compiler & AI Examples (IDE View)       */}
+                    {/* RIGHT HALF: Flexible Content, Code, Arduino, Tasks, Edit */}
                     {/* ======================================================== */}
                     {expandMode !== "left" && (
-                        <div className="bg-[#181825] rounded-xl border border-slate-800 flex flex-col overflow-hidden shadow-xl">
+                        <div className={`rounded-xl border flex flex-col overflow-hidden shadow-sm transition-colors ${
+                            isLight ? "bg-white border-slate-200" : "bg-[#181825] border-slate-800"
+                        }`}>
                             
-                            {/* IDE Top Bar / Window Controls & File Tabs */}
-                            <div className="bg-[#11111b] border-b border-slate-800/80 px-3 py-2 flex items-center justify-between gap-2 shrink-0">
+                            {/* Header: Tabs & Actions */}
+                            <div className={`border-b px-3 py-2 flex items-center justify-between gap-2 shrink-0 ${
+                                isLight ? "bg-slate-100 border-slate-200" : "bg-[#11111b] border-slate-800/80"
+                            }`}>
                                 
-                                {/* Mac Window Dots + Active File Tabs */}
-                                <div className="flex items-center gap-3 overflow-x-auto scrollbar-none">
-                                    <div className="flex items-center gap-1.5 shrink-0 pr-1">
-                                        <span className="w-3 h-3 rounded-full bg-[#f38ba8]/80 block" />
-                                        <span className="w-3 h-3 rounded-full bg-[#f9e2af]/80 block" />
-                                        <span className="w-3 h-3 rounded-full bg-[#a6e3a1]/80 block" />
+                                {/* Tabs List */}
+                                <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none min-w-0">
+                                    {/* Mac Window Dots */}
+                                    <div className="flex items-center gap-1 shrink-0 pr-2">
+                                        <span className="w-2.5 h-2.5 rounded-full bg-red-400 block" />
+                                        <span className="w-2.5 h-2.5 rounded-full bg-amber-400 block" />
+                                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 block" />
                                     </div>
 
-                                    {/* Tabs */}
-                                    <div className="flex items-center gap-1 shrink-0">
-                                        {/* Main Code Tab */}
-                                        <button
-                                            type="button"
-                                            onClick={() => setActiveCodeTab("code")}
-                                            className={`
-                                                px-2.5 py-1 rounded-md text-xs font-mono transition-all flex items-center gap-1.5
-                                                ${activeCodeTab === "code" 
-                                                    ? "bg-[#1e1e2e] text-[#cdd6f4] border border-slate-700/60 shadow-xs font-semibold" 
-                                                    : "text-slate-400 hover:text-slate-200 hover:bg-[#181825]"
-                                                }
-                                            `}
-                                        >
-                                            <FileCode className="w-3.5 h-3.5 text-indigo-400" />
-                                            <span>{currentWeekPlan.codeFile.filename}</span>
-                                        </button>
-
-                                        {/* Tasks / Exercises Tab */}
-                                        <button
-                                            type="button"
-                                            onClick={() => setActiveCodeTab("tasks")}
-                                            className={`
-                                                px-2.5 py-1 rounded-md text-xs font-mono transition-all flex items-center gap-1.5
-                                                ${activeCodeTab === "tasks" 
-                                                    ? "bg-[#1e1e2e] text-[#cdd6f4] border border-slate-700/60 shadow-xs font-semibold" 
-                                                    : "text-slate-400 hover:text-slate-200 hover:bg-[#181825]"
-                                                }
-                                            `}
-                                        >
-                                            <ListChecks className="w-3.5 h-3.5 text-amber-400" />
-                                            <span>{currentWeekPlan.tasks.filename}</span>
-                                        </button>
-
-                                        {/* Notes Tab */}
-                                        <button
-                                            type="button"
-                                            onClick={() => setActiveCodeTab("notes")}
-                                            className={`
-                                                px-2.5 py-1 rounded-md text-xs font-mono transition-all flex items-center gap-1.5
-                                                ${activeCodeTab === "notes" 
-                                                    ? "bg-[#1e1e2e] text-[#cdd6f4] border border-slate-700/60 shadow-xs font-semibold" 
-                                                    : "text-slate-400 hover:text-slate-200 hover:bg-[#181825]"
-                                                }
-                                            `}
-                                        >
-                                            <HelpCircle className="w-3.5 h-3.5 text-sky-400" />
-                                            <span>kazanimlar.md</span>
-                                        </button>
-
-                                        {/* AI Teacher Notes Tab */}
-                                        <button
-                                            type="button"
-                                            onClick={() => setActiveCodeTab("ai")}
-                                            className={`
-                                                px-2.5 py-1 rounded-md text-xs font-mono transition-all flex items-center gap-1.5
-                                                ${activeCodeTab === "ai" 
-                                                    ? "bg-[#1e1e2e] text-[#cdd6f4] border border-slate-700/60 shadow-xs font-semibold" 
-                                                    : "text-slate-400 hover:text-slate-200 hover:bg-[#181825]"
-                                                }
-                                            `}
-                                        >
-                                            <Sparkles className="w-3.5 h-3.5 text-violet-400" />
-                                            <span>ai_egitmen_notu.md</span>
-                                        </button>
-                                    </div>
+                                    {/* Tab Buttons */}
+                                    {currentWeekPlan.tabs && currentWeekPlan.tabs.length > 0 ? (
+                                        currentWeekPlan.tabs.map((tab) => {
+                                            const isActive = activeTabId === tab.id;
+                                            return (
+                                                <button
+                                                    key={tab.id}
+                                                    type="button"
+                                                    onClick={() => { setActiveTabId(tab.id); setIsEditingContent(false); }}
+                                                    className={`
+                                                        px-2.5 py-1 rounded-md text-xs font-mono transition-all flex items-center gap-1.5 shrink-0
+                                                        ${isActive
+                                                            ? isLight 
+                                                                ? "bg-white text-indigo-700 border border-slate-300 shadow-xs font-bold" 
+                                                                : "bg-[#1e1e2e] text-[#cdd6f4] border border-slate-700/60 shadow-xs font-semibold"
+                                                            : isLight 
+                                                                ? "text-slate-600 hover:text-slate-900 hover:bg-slate-200" 
+                                                                : "text-slate-400 hover:text-slate-200 hover:bg-[#181825]"
+                                                        }
+                                                    `}
+                                                >
+                                                    {getTabIcon(tab.type)}
+                                                    <span>{tab.title}</span>
+                                                </button>
+                                            );
+                                        })
+                                    ) : (
+                                        <span className={`text-xs italic ${isLight ? "text-slate-400" : "text-slate-500"}`}>
+                                            (İçerik Sekmesi Yok)
+                                        </span>
+                                    )}
                                 </div>
 
-                                {/* Right Controls: Copy, Terminal Toggle */}
+                                {/* Right Actions: Copy, Terminal, Edit/Save */}
                                 <div className="flex items-center gap-1.5 shrink-0">
-                                    <button
-                                        type="button"
-                                        onClick={handleCopy}
-                                        className="inline-flex items-center gap-1 text-[11px] font-mono text-slate-300 hover:text-white px-2 py-1 rounded bg-[#1e1e2e] hover:bg-[#313244] border border-slate-700/40 transition-colors"
-                                        title="Kodu kopyala"
-                                    >
-                                        {copied ? (
-                                            <>
-                                                <Check className="w-3 h-3 text-emerald-400" />
-                                                <span className="text-emerald-400">Kopyalandı</span>
-                                            </>
+                                    {!isEditingContent && currentWeekPlan.tabs && currentWeekPlan.tabs.length > 0 && (
+                                        <>
+                                            <button
+                                                type="button"
+                                                onClick={handleCopy}
+                                                className={`inline-flex items-center gap-1 text-[11px] font-mono px-2 py-1 rounded border transition-colors ${
+                                                    isLight 
+                                                        ? "bg-white text-slate-700 hover:bg-slate-50 border-slate-300" 
+                                                        : "bg-[#1e1e2e] text-slate-300 hover:text-white border-slate-700/40"
+                                                }`}
+                                                title="İçeriği kopyala"
+                                            >
+                                                {copied ? (
+                                                    <>
+                                                        <Check className="w-3 h-3 text-emerald-500" />
+                                                        <span className="text-emerald-500">Kopyalandı</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Copy className="w-3 h-3" />
+                                                        <span>Kopyala</span>
+                                                    </>
+                                                )}
+                                            </button>
+
+                                            {activeTab?.output && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowTerminal(!showTerminal)}
+                                                    className={`inline-flex items-center gap-1 text-[11px] font-mono px-2 py-1 rounded transition-colors ${
+                                                        showTerminal
+                                                            ? isLight 
+                                                                ? "bg-indigo-100 text-indigo-700 border border-indigo-200" 
+                                                                : "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
+                                                            : isLight 
+                                                                ? "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200" 
+                                                                : "bg-[#1e1e2e] text-slate-400 hover:text-slate-200"
+                                                    }`}
+                                                >
+                                                    <Terminal className="w-3 h-3" />
+                                                    <span>Konsol</span>
+                                                </button>
+                                            )}
+                                        </>
+                                    )}
+
+                                    {/* Edit Button */}
+                                    {!isEditingContent ? (
+                                        <Button
+                                            size="sm"
+                                            onClick={handleStartEditing}
+                                            className={`h-7 px-2 text-[11px] font-medium transition-colors ${
+                                                isLight 
+                                                    ? "bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200" 
+                                                    : "bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/40"
+                                            }`}
+                                        >
+                                            <Edit3 className="w-3 h-3 mr-1" />
+                                            <span>Düzenle</span>
+                                        </Button>
+                                    ) : (
+                                        <div className="flex items-center gap-1">
+                                            <Button
+                                                size="sm"
+                                                onClick={handleSaveContent}
+                                                className="h-7 px-2.5 text-[11px] font-medium bg-emerald-600 hover:bg-emerald-500 text-white"
+                                            >
+                                                <Save className="w-3 h-3 mr-1" />
+                                                <span>Kaydet</span>
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setIsEditingContent(false)}
+                                                className={`h-7 px-2 text-[11px] ${isLight ? "text-slate-600 hover:text-slate-900" : "text-slate-400 hover:text-white"}`}
+                                            >
+                                                <X className="w-3 h-3" />
+                                            </Button>
+                                        </div>
+                                    )}
+                                </div>
+
+                            </div>
+
+                            {/* BODY CONTENT: EDIT MODE vs VIEW MODE */}
+                            <div className="flex-1 overflow-auto flex flex-col">
+
+                                {/* 1. EDIT MODE */}
+                                {isEditingContent ? (
+                                    <div className={`p-4 space-y-4 flex-1 overflow-y-auto ${isLight ? "bg-slate-50 text-slate-900" : "bg-[#181825] text-slate-100"}`}>
+                                        <div className="flex items-center justify-between border-b pb-2">
+                                            <div>
+                                                <h3 className="text-sm font-bold">Haftalık İçeriği & Sekmeleri Düzenle</h3>
+                                                <p className="text-xs opacity-75">Bu haftaya özgü kod, Arduino/Unity çalışması veya konu notları ekleyin.</p>
+                                            </div>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={handleResetContent}
+                                                className="text-rose-600 hover:text-rose-700 text-xs h-7"
+                                                title="Özel içeriği sil ve varsayılana dön"
+                                            >
+                                                <RotateCcw className="w-3 h-3 mr-1" />
+                                                Sıfırla
+                                            </Button>
+                                        </div>
+
+                                        {/* Meta fields */}
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="text-[11px] font-bold block mb-1">Ders Başlığı:</label>
+                                                <Input
+                                                    value={editForm.title}
+                                                    onChange={(e) => setEditForm(p => ({ ...p, title: e.target.value }))}
+                                                    placeholder="Örn: Arduino ile Mesafe Sensörü Uygulaması"
+                                                    className={`h-8 text-xs ${isLight ? "bg-white" : "bg-slate-900 border-slate-700"}`}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-[11px] font-bold block mb-1">Kategori / Alan:</label>
+                                                <Input
+                                                    value={editForm.category}
+                                                    onChange={(e) => setEditForm(p => ({ ...p, category: e.target.value }))}
+                                                    placeholder="Örn: Arduino / Robotik, Unity / C#, Python, Tasarım"
+                                                    className={`h-8 text-xs ${isLight ? "bg-white" : "bg-slate-900 border-slate-700"}`}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="text-[11px] font-bold block mb-1">Kısa Özet / Kazanım Açıklaması:</label>
+                                            <Input
+                                                value={editForm.summary}
+                                                onChange={(e) => setEditForm(p => ({ ...p, summary: e.target.value }))}
+                                                placeholder="Bu hafta öğrencilere aktarılacak temel hedefler..."
+                                                className={`h-8 text-xs ${isLight ? "bg-white" : "bg-slate-900 border-slate-700"}`}
+                                            />
+                                        </div>
+
+                                        {/* Tabs Editor */}
+                                        <div className="space-y-3 pt-2">
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-xs font-bold flex items-center gap-1.5">
+                                                    <span>Sekmeler ve Materyaller:</span>
+                                                    <span className="text-[10px] font-normal px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-400">
+                                                        {editForm.tabs.length} Sekme
+                                                    </span>
+                                                </label>
+                                                <div className="flex items-center gap-1">
+                                                    <Button
+                                                        type="button"
+                                                        size="sm"
+                                                        onClick={() => handleAddTab("code")}
+                                                        className="h-6 px-2 text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white"
+                                                    >
+                                                        <Plus className="w-2.5 h-2.5 mr-1" />
+                                                        + Kod
+                                                    </Button>
+                                                    <Button
+                                                        type="button"
+                                                        size="sm"
+                                                        onClick={() => handleAddTab("arduino")}
+                                                        className="h-6 px-2 text-[10px] bg-emerald-600 hover:bg-emerald-500 text-white"
+                                                    >
+                                                        <Plus className="w-2.5 h-2.5 mr-1" />
+                                                        + Arduino
+                                                    </Button>
+                                                    <Button
+                                                        type="button"
+                                                        size="sm"
+                                                        onClick={() => handleAddTab("unity")}
+                                                        className="h-6 px-2 text-[10px] bg-blue-600 hover:bg-blue-500 text-white"
+                                                    >
+                                                        <Plus className="w-2.5 h-2.5 mr-1" />
+                                                        + Unity
+                                                    </Button>
+                                                    <Button
+                                                        type="button"
+                                                        size="sm"
+                                                        onClick={() => handleAddTab("text")}
+                                                        className="h-6 px-2 text-[10px] bg-amber-600 hover:bg-amber-500 text-white"
+                                                    >
+                                                        <Plus className="w-2.5 h-2.5 mr-1" />
+                                                        + Bilgi/Not
+                                                    </Button>
+                                                </div>
+                                            </div>
+
+                                            {editForm.tabs.map((tab, idx) => (
+                                                <div 
+                                                    key={tab.id}
+                                                    className={`p-3 rounded-xl border space-y-2 ${
+                                                        isLight ? "bg-white border-slate-200" : "bg-slate-900/80 border-slate-800"
+                                                    }`}
+                                                >
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <div className="flex items-center gap-2 flex-1">
+                                                            <Input
+                                                                value={tab.title}
+                                                                onChange={(e) => {
+                                                                    const val = e.target.value;
+                                                                    setEditForm(p => ({
+                                                                        ...p,
+                                                                        tabs: p.tabs.map((t, i) => i === idx ? { ...t, title: val } : t)
+                                                                    }));
+                                                                }}
+                                                                placeholder="Sekme Adı (örn: ornek.py, arduino.ino, gorevler.md)"
+                                                                className={`h-7 text-xs font-mono font-bold max-w-[220px] ${
+                                                                    isLight ? "bg-slate-50" : "bg-slate-950 border-slate-700"
+                                                                }`}
+                                                            />
+                                                            <span className="text-[10px] uppercase font-bold text-slate-500">
+                                                                {tab.type}
+                                                            </span>
+                                                        </div>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => handleDeleteTab(idx)}
+                                                            className="text-rose-500 hover:text-rose-600 h-6 w-6 p-0"
+                                                            title="Sekmeyi Sil"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </Button>
+                                                    </div>
+
+                                                    <textarea
+                                                        rows={6}
+                                                        value={tab.content}
+                                                        onChange={(e) => {
+                                                            const val = e.target.value;
+                                                            setEditForm(p => ({
+                                                                ...p,
+                                                                tabs: p.tabs.map((t, i) => i === idx ? { ...t, content: val } : t)
+                                                            }));
+                                                        }}
+                                                        placeholder="Kod, devre bağlantı şeması veya açıklama metni girin..."
+                                                        className={`w-full p-2.5 rounded-lg text-xs font-mono border leading-relaxed outline-none focus:ring-1 focus:ring-indigo-500 ${
+                                                            isLight 
+                                                                ? "bg-slate-50 border-slate-200 text-slate-900" 
+                                                                : "bg-slate-950 border-slate-700 text-slate-200"
+                                                        }`}
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        <div className="pt-2 flex justify-end gap-2">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => setIsEditingContent(false)}
+                                                className="text-xs"
+                                            >
+                                                İptal
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                onClick={handleSaveContent}
+                                                className="text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-semibold"
+                                            >
+                                                <Save className="w-3.5 h-3.5 mr-1" />
+                                                Değişiklikleri Kaydet
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    /* 2. VIEW MODE */
+                                    <div className="flex-1 flex flex-col overflow-hidden">
+                                        {/* If no real content exists yet */}
+                                        {!currentWeekPlan.hasRealData && (!currentWeekPlan.tabs || currentWeekPlan.tabs.length === 0) ? (
+                                            <div className={`flex-1 flex flex-col items-center justify-center p-8 text-center ${
+                                                isLight ? "bg-slate-50 text-slate-500" : "bg-[#181825] text-slate-400"
+                                            }`}>
+                                                <div className={`w-14 h-14 rounded-2xl border flex items-center justify-center mb-3 ${
+                                                    isLight ? "bg-white border-slate-200 text-slate-400 shadow-xs" : "bg-slate-900 border-slate-800 text-slate-500"
+                                                }`}>
+                                                    <FileQuestion className="w-7 h-7" />
+                                                </div>
+                                                <h3 className={`text-sm md:text-base font-bold mb-1 ${isLight ? "text-slate-800" : "text-slate-200"}`}>
+                                                    {selectedLevel} • Hafta {selectedWeek} İçin Henüz İçerik Eklenmedi
+                                                </h3>
+                                                <p className="text-xs max-w-md mb-5 leading-relaxed opacity-85">
+                                                    Bu hafta için sahte/örnek veri kaldırılmıştır. İlgili ders planı linkini sol tarafa ekleyebilir, ya da sağdaki &quot;İçerik Ekle&quot; butonuyla Python, Arduino, Unity veya teorik notlarınızı doğrudan sisteme kaydedebilirsiniz.
+                                                </p>
+                                                <div className="flex flex-wrap items-center justify-center gap-2">
+                                                    <Button
+                                                        size="sm"
+                                                        onClick={handleStartEditing}
+                                                        className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs h-8 font-medium"
+                                                    >
+                                                        <Plus className="w-3.5 h-3.5 mr-1.5" />
+                                                        Bu Haftaya İçerik & Kod Ekle
+                                                    </Button>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => setIsEditingDocUrl(true)}
+                                                        className={`text-xs h-8 ${isLight ? "border-slate-300 bg-white" : "border-slate-700 bg-slate-900"}`}
+                                                    >
+                                                        <FileText className="w-3.5 h-3.5 mr-1.5" />
+                                                        Google Docs Linki Ekle
+                                                    </Button>
+                                                </div>
+                                            </div>
                                         ) : (
-                                            <>
-                                                <Copy className="w-3 h-3 text-slate-400" />
-                                                <span>Kopyala</span>
-                                            </>
+                                            /* Active Content Viewer */
+                                            <div className="flex-1 flex flex-col overflow-hidden">
+                                                {/* Code / Content Area */}
+                                                <div className={`flex-1 overflow-auto p-3 text-xs md:text-sm font-mono scrollbar-thin ${
+                                                    isLight ? "bg-slate-50 text-slate-900" : "bg-[#181825] text-slate-100"
+                                                }`}>
+                                                    {activeTab && (activeTab.type === "code" || activeTab.type === "arduino" || activeTab.type === "unity") ? (
+                                                        <div className="flex">
+                                                            {/* Line Numbers */}
+                                                            <div className={`select-none pr-4 text-right border-r mr-4 font-mono text-xs leading-relaxed shrink-0 ${
+                                                                isLight ? "text-slate-400 border-slate-200" : "text-slate-600 border-slate-800"
+                                                            }`}>
+                                                                {activeTab.content.split("\n").map((_, i) => (
+                                                                    <div key={i}>{i + 1}</div>
+                                                                ))}
+                                                            </div>
+                                                            {/* Code Lines */}
+                                                            <div className="flex-1 overflow-x-auto leading-relaxed">
+                                                                {activeTab.content.split("\n").map((line, i) => (
+                                                                    <div key={i} className="whitespace-pre">
+                                                                        {renderColoredLine(line, isLight)}
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    ) : activeTab ? (
+                                                        /* Markdown / Text View */
+                                                        <div className="p-2 space-y-3 font-sans text-xs md:text-sm leading-relaxed">
+                                                            <div className={`p-3 rounded-lg border ${
+                                                                isLight ? "bg-indigo-50 border-indigo-200 text-indigo-900" : "bg-indigo-500/10 border-indigo-500/20 text-indigo-200"
+                                                            }`}>
+                                                                <div className="flex items-center gap-2 font-bold mb-1">
+                                                                    {getTabIcon(activeTab.type)}
+                                                                    <span>{activeTab.title}</span>
+                                                                </div>
+                                                                <p className="text-xs opacity-80">
+                                                                    {currentWeekPlan.summary}
+                                                                </p>
+                                                            </div>
+
+                                                            <div className={`p-4 rounded-lg border whitespace-pre-wrap font-sans ${
+                                                                isLight ? "bg-white border-slate-200 text-slate-800" : "bg-[#1e1e2e] border-slate-800 text-slate-200"
+                                                            }`}>
+                                                                {activeTab.content}
+                                                            </div>
+                                                        </div>
+                                                    ) : null}
+                                                </div>
+
+                                                {/* Simulated Terminal Output Panel (if output provided) */}
+                                                {showTerminal && activeTab?.output && (
+                                                    <div className={`border-t shrink-0 max-h-48 flex flex-col font-mono text-xs ${
+                                                        isLight ? "bg-slate-100 border-slate-200" : "bg-[#11111b] border-slate-800"
+                                                    }`}>
+                                                        <div className={`px-3 py-1.5 border-b flex items-center justify-between ${
+                                                            isLight ? "bg-slate-200 border-slate-300 text-slate-700" : "bg-[#181825] border-slate-800 text-slate-400"
+                                                        }`}>
+                                                            <div className="flex items-center gap-2">
+                                                                <Terminal className="w-3 h-3 text-emerald-500" />
+                                                                <span className="font-semibold">KONSOL / DERLEYİCİ ÇIKTISI</span>
+                                                                <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                                                                    Exit Code: 0
+                                                                </span>
+                                                            </div>
+                                                            <div className="text-[11px] opacity-75">
+                                                                {activeTab.language === "python" ? "python3 main.py" : "output"}
+                                                            </div>
+                                                        </div>
+                                                        <div className="p-3 overflow-y-auto max-h-36 font-mono text-emerald-500 whitespace-pre leading-relaxed select-text bg-slate-950">
+                                                            {activeTab.output}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
                                         )}
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowTerminal(!showTerminal)}
-                                        className={`inline-flex items-center gap-1 text-[11px] font-mono px-2 py-1 rounded transition-colors ${
-                                            showTerminal 
-                                                ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30" 
-                                                : "bg-[#1e1e2e] text-slate-400 hover:text-slate-200"
-                                        }`}
-                                        title="Konsol çıktısını göster / gizle"
-                                    >
-                                        <Terminal className="w-3 h-3" />
-                                        <span>Konsol</span>
-                                    </button>
-                                </div>
+                                    </div>
+                                )}
 
                             </div>
-
-                            {/* Code Area with Line Numbers */}
-                            <div className="flex-1 overflow-auto bg-[#181825] p-3 text-xs md:text-sm font-mono scrollbar-thin">
-                                {activeCodeTab === "code" && (
-                                    <div className="flex">
-                                        {/* Line Numbers */}
-                                        <div className="select-none text-slate-600 pr-4 text-right border-r border-slate-800 mr-4 font-mono text-xs leading-relaxed shrink-0">
-                                            {currentWeekPlan.codeFile.code.split("\n").map((_, i) => (
-                                                <div key={i}>{i + 1}</div>
-                                            ))}
-                                        </div>
-                                        {/* Code lines */}
-                                        <div className="flex-1 overflow-x-auto leading-relaxed">
-                                            {currentWeekPlan.codeFile.code.split("\n").map((line, i) => (
-                                                <div key={i} className="whitespace-pre">
-                                                    {renderColoredLine(line, currentWeekPlan.codeFile.language)}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {activeCodeTab === "tasks" && (
-                                    <div className="flex">
-                                        <div className="select-none text-slate-600 pr-4 text-right border-r border-slate-800 mr-4 font-mono text-xs leading-relaxed shrink-0">
-                                            {currentWeekPlan.tasks.code.split("\n").map((_, i) => (
-                                                <div key={i}>{i + 1}</div>
-                                            ))}
-                                        </div>
-                                        <div className="flex-1 overflow-x-auto leading-relaxed">
-                                            {currentWeekPlan.tasks.code.split("\n").map((line, i) => (
-                                                <div key={i} className="whitespace-pre">
-                                                    {renderColoredLine(line, "csharp")}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {activeCodeTab === "notes" && (
-                                    <div className="p-2 space-y-3 font-sans text-slate-300 text-xs md:text-sm leading-relaxed">
-                                        <div className="p-3 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-200">
-                                            <div className="flex items-center gap-2 font-bold mb-1">
-                                                <BookOpen className="w-4 h-4 text-indigo-400" />
-                                                <span>Haftalık Konu Özeti & Kazanımlar</span>
-                                            </div>
-                                            <p className="text-xs text-indigo-300/80">
-                                                {currentWeekPlan.summary}
-                                            </p>
-                                        </div>
-
-                                        <div className="bg-[#1e1e2e] p-4 rounded-lg border border-slate-800 whitespace-pre-wrap font-sans">
-                                            {currentWeekPlan.notesMarkdown}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {activeCodeTab === "ai" && (
-                                    <div className="p-2 space-y-3 font-sans text-slate-300 text-xs md:text-sm leading-relaxed">
-                                        <div className="p-3 rounded-lg bg-violet-500/10 border border-violet-500/20 text-violet-200">
-                                            <div className="flex items-center gap-2 font-bold mb-1">
-                                                <Sparkles className="w-4 h-4 text-violet-400" />
-                                                <span>Yapay Zeka Eğitmen Rehberi</span>
-                                            </div>
-                                            <p className="text-xs text-violet-300/80">
-                                                Ders esnasında öğrencilerin dikkatini çekebilecek soru kalıpları ve yaygın hata ipuçları
-                                            </p>
-                                        </div>
-
-                                        <div className="bg-[#1e1e2e] p-4 rounded-lg border border-slate-800 whitespace-pre-wrap font-sans text-slate-200">
-                                            {currentWeekPlan.teacherAiNotes}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Terminal / Compiler Output Panel */}
-                            {showTerminal && (
-                                <div className="border-t border-slate-800 bg-[#11111b] shrink-0 max-h-48 flex flex-col font-mono text-xs">
-                                    <div className="px-3 py-1.5 bg-[#181825] border-b border-slate-800 flex items-center justify-between text-slate-400">
-                                        <div className="flex items-center gap-2">
-                                            <Terminal className="w-3 h-3 text-emerald-400" />
-                                            <span className="font-semibold text-slate-300">TERMINAL ÇIKTISI</span>
-                                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                                Exit Code: 0
-                                            </span>
-                                        </div>
-                                        <div className="text-[11px] text-slate-500">
-                                            {currentWeekPlan.codeFile.language === "csharp" ? "dotnet run" : "python3 main.py"}
-                                        </div>
-                                    </div>
-                                    <div className="p-3 overflow-y-auto max-h-36 font-mono text-emerald-400 whitespace-pre leading-relaxed select-text">
-                                        {currentWeekPlan.codeFile.output}
-                                    </div>
-                                </div>
-                            )}
 
                             {/* IDE Bottom Status Bar */}
-                            <div className="bg-[#11111b] border-t border-slate-800/80 px-3 py-1 flex items-center justify-between text-[11px] text-slate-500 font-mono shrink-0">
+                            <div className={`border-t px-3 py-1 flex items-center justify-between text-[11px] font-mono shrink-0 ${
+                                isLight ? "bg-slate-100 border-slate-200 text-slate-500" : "bg-[#11111b] border-slate-800/80 text-slate-500"
+                            }`}>
                                 <div className="flex items-center gap-3">
-                                    <span className="text-indigo-400 flex items-center gap-1">
+                                    <span className="text-indigo-500 flex items-center gap-1 font-semibold">
                                         <Code2 className="w-3 h-3" />
-                                        {currentWeekPlan.codeFile.language.toUpperCase()}
+                                        {activeTab ? (activeTab.language || activeTab.type).toUpperCase() : "HAZIR"}
                                     </span>
                                     <span>UTF-8</span>
-                                    <span>Spaces: 4</span>
+                                    <span>{theme.toUpperCase()} MODE</span>
                                 </div>
-                                <div className="text-slate-400 text-[10px]">
-                                    AI Kod Alanı Hazır • İçerikler güncellenebilir
+                                <div className="text-[10px] opacity-80">
+                                    {currentWeekPlan.hasRealData ? "Gerçek Müfredat Aktif" : "Yeni İçerik Bekleniyor"}
                                 </div>
                             </div>
 
