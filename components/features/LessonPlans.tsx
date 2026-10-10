@@ -380,6 +380,25 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
         setIsEditingDocUrl(false);
     };
 
+    // Copy all saved Google Docs links to clipboard for AI Assistant
+    const handleCopyAllDocUrls = () => {
+        const allUrls: Record<string, string> = { ...customDocUrls };
+        if (!allUrls["Seviye 3-W1"]) {
+            allUrls["Seviye 3-W1"] = DEFAULT_SEVIYE_3_HAFTA_1_DOC;
+        }
+        const entries = Object.entries(allUrls).filter(([_, url]) => Boolean(url && url.trim()));
+        if (entries.length === 0) {
+            alert("Henüz kayıtlı bir Google Docs linki bulunamadı. Lütfen önce link ekleyin.");
+            return;
+        }
+        const formatted = entries
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([key, url]) => `${key}: ${url}`)
+            .join("\n");
+        navigator.clipboard.writeText(formatted);
+        alert(`Toplam ${entries.length} adet ders planı linki panoya kopyalandı!\nŞimdi sohbete yapıştırabilirsiniz.`);
+    };
+
     // Open Edit Mode for Right Content
     const handleStartEditing = () => {
         setEditForm({
@@ -853,6 +872,19 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                                     >
                                         <Edit3 className="w-3 h-3" />
                                         <span>Link Düzenle</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleCopyAllDocUrls}
+                                        className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded transition-colors ${
+                                            isLight 
+                                                ? "bg-slate-200 text-slate-700 hover:bg-slate-300" 
+                                                : "bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700"
+                                        }`}
+                                        title="Eklediğiniz tüm Google Docs linklerini kopyalar"
+                                    >
+                                        <Copy className="w-3 h-3 text-indigo-400" />
+                                        <span>Tüm Linkleri Kopyala</span>
                                     </button>
                                 </div>
                             </div>
