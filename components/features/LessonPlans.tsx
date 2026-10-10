@@ -265,23 +265,59 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
         const newId = `tab_${Date.now()}`;
         const newTab: PlanTab = {
             id: newId,
-            title: type === "code" ? "kod_ornek.py" : type === "arduino" ? "arduino_devre.ino" : type === "unity" ? "GameController.cs" : "Etkinlik & Bilgiler",
+            title: type === "code" 
+                ? "kod_ornek.py" 
+                : type === "arduino" 
+                ? "arduino_devre.ino" 
+                : type === "unity" 
+                ? "GameController.cs" 
+                : type === "tasks"
+                ? "Gorevler.md"
+                : type === "notes"
+                ? "Ogretmen_Notlari.md"
+                : "Etkinlik & Bilgiler",
             type: type,
-            filename: type === "code" ? "main.py" : type === "arduino" ? "circuit.ino" : type === "unity" ? "script.cs" : "notlar.md",
-            language: type === "code" ? "python" : type === "arduino" ? "cpp" : type === "unity" ? "csharp" : "markdown",
+            filename: type === "code" 
+                ? "main.py" 
+                : type === "arduino" 
+                ? "circuit.ino" 
+                : type === "unity" 
+                ? "script.cs" 
+                : type === "tasks"
+                ? "tasks.md"
+                : type === "notes"
+                ? "notlar.md"
+                : "icerik.md",
+            language: type === "code" 
+                ? "python" 
+                : type === "arduino" 
+                ? "cpp" 
+                : type === "unity" 
+                ? "csharp" 
+                : "markdown",
             content: type === "code" 
-                ? "# Örnek kodunuzu buraya yazın\nprint('Merhaba!')" 
+                ? "# Örnek Python Kodunuzu buraya yazın\nprint('Merhaba!')" 
                 : type === "arduino"
-                ? "// Arduino C++ Devre Kodu\nvoid setup() {\n  pinMode(13, OUTPUT);\n}\nvoid loop() {\n  digitalWrite(13, HIGH);\n  delay(1000);\n  digitalWrite(13, LOW);\n  delay(1000);\n}"
+                ? "// Arduino C++ Devre Kodu\nvoid setup() {\n  pinMode(13, OUTPUT);\n}\n\nvoid loop() {\n  digitalWrite(13, HIGH);\n  delay(1000);\n  digitalWrite(13, LOW);\n  delay(1000);\n}"
                 : type === "unity"
-                ? "using UnityEngine;\n\npublic class Controller : MonoBehaviour {\n    void Start() {\n        Debug.Log(\"Oyun Başladı\");\n    }\n}"
-                : "### Ders Açıklamaları ve Etkinlikler\n- Öğrencilere aktarılacak bilgiler..."
+                ? "using UnityEngine;\n\npublic class Controller : MonoBehaviour {\n    void Start() {\n        Debug.Log(\"Oyun Başladı\");\n    }\n\n    void Update() {\n        // Oyun döngüsü\n    }\n}"
+                : type === "tasks"
+                ? "### Haftalık Öğrenci Görevleri\n- [ ] 1. Temel Seviye Görev\n- [ ] 2. İleri Seviye Görev\n- [ ] 3. Meydan Okuma (Bonus)"
+                : type === "notes"
+                ? "### Eğitmen İpuçları & Dikkat Edilecek Noktalar\n- Öğrencilere bu hafta aktarılacak kritik noktalar..."
+                : "### Ders Açıklamaları ve Etkinlikler\n- Bu derste uygulanacak etkinlikler ve açıklamalar...",
+            output: type === "code" ? ">>> python3 main.py\nMerhaba!" : undefined
         };
         setEditForm(prev => ({ ...prev, tabs: [...prev.tabs, newTab] }));
     };
 
     // Delete a tab in edit form
     const handleDeleteTab = (index: number) => {
+        const tabToDelete = editForm.tabs[index];
+        const tabName = tabToDelete?.title || `Sekme ${index + 1}`;
+        if (!confirm(`"${tabName}" sekmesini silmek istediğinize emin misiniz?`)) {
+            return;
+        }
         setEditForm(prev => ({
             ...prev,
             tabs: prev.tabs.filter((_, i) => i !== index)
@@ -528,23 +564,23 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
 
             {/* Sub-header: Current Week Title & Quick Info */}
             <div className={`border-b px-4 py-2 shrink-0 transition-colors ${
-                isLight ? "bg-white/60 border-slate-200" : "bg-slate-950/40 border-slate-800/80"
+                isLight ? "bg-white/90 border-slate-200" : "bg-slate-950/40 border-slate-800/80"
             }`}>
                 <div className="max-w-[1920px] mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="flex items-center gap-2 overflow-hidden">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider shrink-0 ${
+                        <span className={`px-2.5 py-1 rounded text-[11px] font-extrabold uppercase tracking-wider shrink-0 ${
                             isLight 
-                                ? "bg-indigo-50 text-indigo-700 border border-indigo-200" 
+                                ? "bg-indigo-100 text-indigo-950 border border-indigo-300" 
                                 : "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
                         }`}>
                             {selectedLevel} • Hafta {currentWeekPlan.week}
                         </span>
-                        <h2 className={`text-xs md:text-sm font-semibold truncate ${isLight ? "text-slate-900" : "text-slate-200"}`}>
+                        <h2 className={`text-xs md:text-sm font-bold truncate ${isLight ? "text-slate-950" : "text-slate-100"}`}>
                             {currentWeekPlan.title}
                         </h2>
                         {currentWeekPlan.category && (
-                            <span className={`text-[10px] px-2 py-0.5 rounded-full hidden sm:inline-block ${
-                                isLight ? "bg-slate-200 text-slate-700" : "bg-slate-800 text-slate-300"
+                            <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full hidden sm:inline-block ${
+                                isLight ? "bg-slate-200 text-slate-900 border border-slate-300" : "bg-slate-800 text-slate-300"
                             }`}>
                                 {currentWeekPlan.category}
                             </span>
@@ -811,10 +847,10 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                                                         px-2.5 py-1 rounded-md text-xs font-mono transition-all flex items-center gap-1.5 shrink-0
                                                         ${isActive
                                                             ? isLight 
-                                                                ? "bg-white text-indigo-700 border border-slate-300 shadow-xs font-bold" 
+                                                                ? "bg-white text-indigo-950 border border-indigo-400 shadow-sm font-bold ring-1 ring-indigo-500/20" 
                                                                 : "bg-[#1e1e2e] text-[#cdd6f4] border border-slate-700/60 shadow-xs font-semibold"
                                                             : isLight 
-                                                                ? "text-slate-600 hover:text-slate-900 hover:bg-slate-200" 
+                                                                ? "text-slate-700 hover:text-slate-950 hover:bg-slate-200/80 font-medium" 
                                                                 : "text-slate-400 hover:text-slate-200 hover:bg-[#181825]"
                                                         }
                                                     `}
@@ -825,7 +861,7 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                                             );
                                         })
                                     ) : (
-                                        <span className={`text-xs italic ${isLight ? "text-slate-400" : "text-slate-500"}`}>
+                                        <span className={`text-xs italic font-medium ${isLight ? "text-slate-600" : "text-slate-500"}`}>
                                             (İçerik Sekmesi Yok)
                                         </span>
                                     )}
@@ -922,20 +958,30 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
 
                                 {/* 1. EDIT MODE */}
                                 {isEditingContent ? (
-                                    <div className={`p-4 space-y-4 flex-1 overflow-y-auto ${isLight ? "bg-slate-50 text-slate-900" : "bg-[#181825] text-slate-100"}`}>
-                                        <div className="flex items-center justify-between border-b pb-2">
+                                    <div className={`p-4 space-y-4 flex-1 overflow-y-auto ${isLight ? "bg-slate-50 text-slate-950" : "bg-[#181825] text-slate-100"}`}>
+                                        
+                                        {/* Edit Header */}
+                                        <div className={`flex items-center justify-between border-b pb-3 ${isLight ? "border-slate-200" : "border-slate-800"}`}>
                                             <div>
-                                                <h3 className="text-sm font-bold">Haftalık İçeriği & Sekmeleri Düzenle</h3>
-                                                <p className="text-xs opacity-75">Bu haftaya özgü kod, Arduino/Unity çalışması veya konu notları ekleyin.</p>
+                                                <h3 className={`text-sm md:text-base font-extrabold ${isLight ? "text-slate-950" : "text-white"}`}>
+                                                    Haftalık İçeriği & Sekmeleri Düzenle
+                                                </h3>
+                                                <p className={`text-xs font-medium mt-0.5 ${isLight ? "text-slate-600" : "text-slate-400"}`}>
+                                                    Bu haftaya ait kodları, devreleri, Unity scriptlerini veya konu anlatımlarını ekleyin, düzenleyin ya da silin.
+                                                </p>
                                             </div>
                                             <Button
                                                 variant="outline"
                                                 size="sm"
                                                 onClick={handleResetContent}
-                                                className="text-rose-600 hover:text-rose-700 text-xs h-7"
+                                                className={`text-xs h-8 font-semibold transition-colors ${
+                                                    isLight 
+                                                        ? "text-rose-700 border-rose-300 hover:bg-rose-50" 
+                                                        : "text-rose-400 border-rose-900/60 hover:bg-rose-950/40"
+                                                }`}
                                                 title="Özel içeriği sil ve varsayılana dön"
                                             >
-                                                <RotateCcw className="w-3 h-3 mr-1" />
+                                                <RotateCcw className="w-3.5 h-3.5 mr-1" />
                                                 Sıfırla
                                             </Button>
                                         </div>
@@ -943,158 +989,380 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                                         {/* Meta fields */}
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                             <div>
-                                                <label className="text-[11px] font-bold block mb-1">Ders Başlığı:</label>
+                                                <label className={`text-xs font-bold block mb-1.5 ${isLight ? "text-slate-950" : "text-slate-100"}`}>
+                                                    Ders Başlığı:
+                                                </label>
                                                 <Input
                                                     value={editForm.title}
                                                     onChange={(e) => setEditForm(p => ({ ...p, title: e.target.value }))}
                                                     placeholder="Örn: Arduino ile Mesafe Sensörü Uygulaması"
-                                                    className={`h-8 text-xs ${isLight ? "bg-white" : "bg-slate-900 border-slate-700"}`}
+                                                    className={`h-9 text-xs font-medium ${
+                                                        isLight 
+                                                            ? "bg-white text-slate-950 border-slate-300 placeholder:text-slate-400 focus:border-indigo-600" 
+                                                            : "bg-slate-900 border-slate-700 text-slate-100"
+                                                    }`}
                                                 />
                                             </div>
                                             <div>
-                                                <label className="text-[11px] font-bold block mb-1">Kategori / Alan:</label>
+                                                <label className={`text-xs font-bold block mb-1.5 ${isLight ? "text-slate-950" : "text-slate-100"}`}>
+                                                    Kategori / Alan:
+                                                </label>
                                                 <Input
                                                     value={editForm.category}
                                                     onChange={(e) => setEditForm(p => ({ ...p, category: e.target.value }))}
-                                                    placeholder="Örn: Arduino / Robotik, Unity / C#, Python, Tasarım"
-                                                    className={`h-8 text-xs ${isLight ? "bg-white" : "bg-slate-900 border-slate-700"}`}
+                                                    placeholder="Örn: Arduino / Robotik, Unity / C#, Python, Algoritma"
+                                                    className={`h-9 text-xs font-medium ${
+                                                        isLight 
+                                                            ? "bg-white text-slate-950 border-slate-300 placeholder:text-slate-400 focus:border-indigo-600" 
+                                                            : "bg-slate-900 border-slate-700 text-slate-100"
+                                                    }`}
                                                 />
                                             </div>
                                         </div>
 
                                         <div>
-                                            <label className="text-[11px] font-bold block mb-1">Kısa Özet / Kazanım Açıklaması:</label>
+                                            <label className={`text-xs font-bold block mb-1.5 ${isLight ? "text-slate-950" : "text-slate-100"}`}>
+                                                Kısa Özet / Kazanım Açıklaması:
+                                            </label>
                                             <Input
                                                 value={editForm.summary}
                                                 onChange={(e) => setEditForm(p => ({ ...p, summary: e.target.value }))}
-                                                placeholder="Bu hafta öğrencilere aktarılacak temel hedefler..."
-                                                className={`h-8 text-xs ${isLight ? "bg-white" : "bg-slate-900 border-slate-700"}`}
+                                                placeholder="Bu hafta öğrencilere kazandırılacak beceriler ve hedefler..."
+                                                className={`h-9 text-xs font-medium ${
+                                                    isLight 
+                                                        ? "bg-white text-slate-950 border-slate-300 placeholder:text-slate-400 focus:border-indigo-600" 
+                                                        : "bg-slate-900 border-slate-700 text-slate-100"
+                                                }`}
                                             />
                                         </div>
 
-                                        {/* Tabs Editor */}
+                                        {/* Tabs Section Header & Quick Add Toolbar */}
                                         <div className="space-y-3 pt-2">
-                                            <div className="flex items-center justify-between">
-                                                <label className="text-xs font-bold flex items-center gap-1.5">
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-1">
+                                                <label className={`text-xs font-extrabold flex items-center gap-2 ${isLight ? "text-slate-950" : "text-slate-100"}`}>
                                                     <span>Sekmeler ve Materyaller:</span>
-                                                    <span className="text-[10px] font-normal px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-400">
+                                                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                                                        isLight 
+                                                            ? "bg-indigo-100 text-indigo-950 border border-indigo-300" 
+                                                            : "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
+                                                    }`}>
                                                         {editForm.tabs.length} Sekme
                                                     </span>
                                                 </label>
-                                                <div className="flex items-center gap-1">
+                                                
+                                                {/* Prominent Tab Creation Toolbar */}
+                                                <div className="flex flex-wrap items-center gap-1.5">
+                                                    <span className={`text-[10px] font-bold uppercase tracking-wider mr-1 hidden md:inline-block ${
+                                                        isLight ? "text-slate-500" : "text-slate-400"
+                                                    }`}>
+                                                        Sekme Ekle:
+                                                    </span>
                                                     <Button
                                                         type="button"
                                                         size="sm"
                                                         onClick={() => handleAddTab("code")}
-                                                        className="h-6 px-2 text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white"
+                                                        className="h-7 px-2.5 text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-semibold shadow-xs"
                                                     >
-                                                        <Plus className="w-2.5 h-2.5 mr-1" />
-                                                        + Kod
+                                                        <Plus className="w-3 h-3 mr-1" />
+                                                        + Python
                                                     </Button>
                                                     <Button
                                                         type="button"
                                                         size="sm"
                                                         onClick={() => handleAddTab("arduino")}
-                                                        className="h-6 px-2 text-[10px] bg-emerald-600 hover:bg-emerald-500 text-white"
+                                                        className="h-7 px-2.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-xs"
                                                     >
-                                                        <Plus className="w-2.5 h-2.5 mr-1" />
+                                                        <Plus className="w-3 h-3 mr-1" />
                                                         + Arduino
                                                     </Button>
                                                     <Button
                                                         type="button"
                                                         size="sm"
                                                         onClick={() => handleAddTab("unity")}
-                                                        className="h-6 px-2 text-[10px] bg-blue-600 hover:bg-blue-500 text-white"
+                                                        className="h-7 px-2.5 text-xs bg-blue-600 hover:bg-blue-500 text-white font-semibold shadow-xs"
                                                     >
-                                                        <Plus className="w-2.5 h-2.5 mr-1" />
+                                                        <Plus className="w-3 h-3 mr-1" />
                                                         + Unity
                                                     </Button>
                                                     <Button
                                                         type="button"
                                                         size="sm"
                                                         onClick={() => handleAddTab("text")}
-                                                        className="h-6 px-2 text-[10px] bg-amber-600 hover:bg-amber-500 text-white"
+                                                        className="h-7 px-2.5 text-xs bg-amber-600 hover:bg-amber-500 text-white font-semibold shadow-xs"
                                                     >
-                                                        <Plus className="w-2.5 h-2.5 mr-1" />
+                                                        <Plus className="w-3 h-3 mr-1" />
                                                         + Bilgi/Not
+                                                    </Button>
+                                                    <Button
+                                                        type="button"
+                                                        size="sm"
+                                                        onClick={() => handleAddTab("tasks")}
+                                                        className="h-7 px-2.5 text-xs bg-violet-600 hover:bg-violet-500 text-white font-semibold shadow-xs"
+                                                    >
+                                                        <Plus className="w-3 h-3 mr-1" />
+                                                        + Görevler
                                                     </Button>
                                                 </div>
                                             </div>
 
+                                            {/* Empty State if All Tabs are Deleted */}
+                                            {editForm.tabs.length === 0 && (
+                                                <div className={`p-8 rounded-xl border border-dashed text-center flex flex-col items-center justify-center my-3 ${
+                                                    isLight 
+                                                        ? "bg-white border-slate-300 text-slate-800" 
+                                                        : "bg-slate-900 border-slate-800 text-slate-300"
+                                                }`}>
+                                                    <p className="text-sm font-bold mb-1">Henüz sekme bulunmuyor</p>
+                                                    <p className="text-xs text-slate-500 mb-4 max-w-sm">
+                                                        Yukarıdaki veya aşağıdaki butonlara tıklayarak bu haftaya dilediğiniz sayıda sekme ekleyebilirsiniz.
+                                                    </p>
+                                                    <div className="flex flex-wrap gap-2 justify-center">
+                                                        <Button size="sm" onClick={() => handleAddTab("code")} className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs h-8">
+                                                            <Plus className="w-3 h-3 mr-1" /> + Python Kod Sekmesi Ekle
+                                                        </Button>
+                                                        <Button size="sm" onClick={() => handleAddTab("arduino")} className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs h-8">
+                                                            <Plus className="w-3 h-3 mr-1" /> + Arduino Sekmesi Ekle
+                                                        </Button>
+                                                        <Button size="sm" onClick={() => handleAddTab("unity")} className="bg-blue-600 hover:bg-blue-500 text-white text-xs h-8">
+                                                            <Plus className="w-3 h-3 mr-1" /> + Unity Sekmesi Ekle
+                                                        </Button>
+                                                        <Button size="sm" onClick={() => handleAddTab("text")} className="bg-amber-600 hover:bg-amber-500 text-white text-xs h-8">
+                                                            <Plus className="w-3 h-3 mr-1" /> + Bilgi/Not Ekle
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Tabs List */}
                                             {editForm.tabs.map((tab, idx) => (
                                                 <div 
                                                     key={tab.id}
-                                                    className={`p-3 rounded-xl border space-y-2 ${
-                                                        isLight ? "bg-white border-slate-200" : "bg-slate-900/80 border-slate-800"
+                                                    className={`p-3.5 rounded-xl border space-y-3 transition-all ${
+                                                        isLight 
+                                                            ? "bg-white border-slate-300 shadow-xs" 
+                                                            : "bg-slate-900/90 border-slate-800"
                                                     }`}
                                                 >
-                                                    <div className="flex items-center justify-between gap-2">
-                                                        <div className="flex items-center gap-2 flex-1">
-                                                            <Input
-                                                                value={tab.title}
+                                                    {/* Tab Card Header: Badge, Title Input, Type Dropdown, Delete Button */}
+                                                    <div className={`flex flex-wrap items-center justify-between gap-2.5 pb-2.5 border-b ${
+                                                        isLight ? "border-slate-200" : "border-slate-800"
+                                                    }`}>
+                                                        <div className="flex flex-wrap items-center gap-2 flex-1 min-w-[260px]">
+                                                            {/* Tab Index Badge */}
+                                                            <span className={`px-2 py-1 rounded text-[11px] font-extrabold shrink-0 ${
+                                                                isLight 
+                                                                    ? "bg-slate-100 text-slate-900 border border-slate-300" 
+                                                                    : "bg-slate-800 text-slate-200 border border-slate-700"
+                                                            }`}>
+                                                                Sekme {idx + 1}
+                                                            </span>
+
+                                                            {/* Tab Title Input */}
+                                                            <div className="flex-1 min-w-[160px]">
+                                                                <label className={`text-[10px] font-extrabold block uppercase tracking-wider mb-0.5 ${
+                                                                    isLight ? "text-slate-900" : "text-slate-200"
+                                                                }`}>
+                                                                    Sekme Adı:
+                                                                </label>
+                                                                <Input
+                                                                    value={tab.title}
+                                                                    onChange={(e) => {
+                                                                        const val = e.target.value;
+                                                                        setEditForm(p => ({
+                                                                            ...p,
+                                                                            tabs: p.tabs.map((t, i) => i === idx ? { ...t, title: val } : t)
+                                                                        }));
+                                                                    }}
+                                                                    placeholder="Örn: ornek.py, arduino.ino, gorevler.md"
+                                                                    className={`h-8 text-xs font-mono font-bold ${
+                                                                        isLight 
+                                                                            ? "bg-slate-50 text-slate-950 border-slate-300 focus:bg-white focus:border-indigo-600" 
+                                                                            : "bg-slate-950 border-slate-700 text-slate-100"
+                                                                    }`}
+                                                                />
+                                                            </div>
+
+                                                            {/* Tab Type Dropdown */}
+                                                            <div className="w-36 shrink-0">
+                                                                <label className={`text-[10px] font-extrabold block uppercase tracking-wider mb-0.5 ${
+                                                                    isLight ? "text-slate-900" : "text-slate-200"
+                                                                }`}>
+                                                                    Sekme Türü:
+                                                                </label>
+                                                                <select
+                                                                    value={tab.type}
+                                                                    onChange={(e) => {
+                                                                        const newType = e.target.value as ContentType;
+                                                                        setEditForm(p => ({
+                                                                            ...p,
+                                                                            tabs: p.tabs.map((t, i) => i === idx ? { 
+                                                                                ...t, 
+                                                                                type: newType,
+                                                                                language: newType === "code" ? "python" : newType === "arduino" ? "cpp" : newType === "unity" ? "csharp" : "markdown"
+                                                                            } : t)
+                                                                        }));
+                                                                    }}
+                                                                    className={`h-8 w-full rounded-md border text-xs px-2 font-bold outline-none transition-colors ${
+                                                                        isLight 
+                                                                            ? "bg-slate-50 text-slate-950 border-slate-300 focus:bg-white focus:border-indigo-600" 
+                                                                            : "bg-slate-950 text-slate-100 border-slate-700 focus:border-indigo-500"
+                                                                    }`}
+                                                                >
+                                                                    <option value="code">Kod (Python)</option>
+                                                                    <option value="arduino">Arduino (C++)</option>
+                                                                    <option value="unity">Unity (C#)</option>
+                                                                    <option value="text">Bilgi / Açıklama</option>
+                                                                    <option value="tasks">Görevler</option>
+                                                                    <option value="notes">Öğretmen Notu</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Prominent Red Delete Tab Button */}
+                                                        <div className="flex items-end self-end sm:self-auto">
+                                                            <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => handleDeleteTab(idx)}
+                                                                className={`h-8 px-2.5 text-xs font-bold transition-all border-rose-300 text-rose-600 hover:text-white hover:bg-rose-600 bg-rose-50/60 dark:bg-rose-950/20 dark:border-rose-900/60 dark:text-rose-400 dark:hover:bg-rose-600`}
+                                                                title="Bu sekmeyi listeden sil"
+                                                            >
+                                                                <Trash2 className="w-3.5 h-3.5 mr-1" />
+                                                                <span>Sekmeyi Sil</span>
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Tab Content Editor */}
+                                                    <div>
+                                                        <label className={`text-[10px] font-extrabold block uppercase tracking-wider mb-1 ${
+                                                            isLight ? "text-slate-900" : "text-slate-200"
+                                                        }`}>
+                                                            Sekme İçeriği (Kod, Not veya Şema Metni):
+                                                        </label>
+                                                        <textarea
+                                                            rows={7}
+                                                            value={tab.content}
+                                                            onChange={(e) => {
+                                                                const val = e.target.value;
+                                                                setEditForm(p => ({
+                                                                    ...p,
+                                                                    tabs: p.tabs.map((t, i) => i === idx ? { ...t, content: val } : t)
+                                                                }));
+                                                            }}
+                                                            placeholder="Kod, devre bağlantı şeması veya açıklama metni girin..."
+                                                            className={`w-full p-2.5 rounded-lg text-xs font-mono border leading-relaxed outline-none transition-colors ${
+                                                                isLight 
+                                                                    ? "bg-slate-50 border-slate-300 text-slate-950 placeholder:text-slate-400 focus:bg-white focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 font-medium" 
+                                                                    : "bg-slate-950 border-slate-700 text-slate-100 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                                                            }`}
+                                                        />
+                                                    </div>
+
+                                                    {/* Optional Console Output field if code tab */}
+                                                    {(tab.type === "code" || tab.type === "arduino" || tab.type === "unity") && (
+                                                        <div className="pt-1">
+                                                            <label className={`text-[10px] font-bold block uppercase tracking-wider mb-1 ${
+                                                                isLight ? "text-slate-700" : "text-slate-400"
+                                                            }`}>
+                                                                Konsol / Çıktı Önizlemesi (İsteğe bağlı):
+                                                            </label>
+                                                            <textarea
+                                                                rows={2}
+                                                                value={tab.output || ""}
                                                                 onChange={(e) => {
                                                                     const val = e.target.value;
                                                                     setEditForm(p => ({
                                                                         ...p,
-                                                                        tabs: p.tabs.map((t, i) => i === idx ? { ...t, title: val } : t)
+                                                                        tabs: p.tabs.map((t, i) => i === idx ? { ...t, output: val } : t)
                                                                     }));
                                                                 }}
-                                                                placeholder="Sekme Adı (örn: ornek.py, arduino.ino, gorevler.md)"
-                                                                className={`h-7 text-xs font-mono font-bold max-w-[220px] ${
-                                                                    isLight ? "bg-slate-50" : "bg-slate-950 border-slate-700"
+                                                                placeholder="Simüle edilecek konsol çıktısı..."
+                                                                className={`w-full p-2 rounded-lg text-xs font-mono border leading-relaxed outline-none transition-colors ${
+                                                                    isLight 
+                                                                        ? "bg-slate-100 border-slate-300 text-emerald-800 placeholder:text-slate-400 font-medium" 
+                                                                        : "bg-black/40 border-slate-800 text-emerald-400 placeholder:text-slate-600"
                                                                 }`}
                                                             />
-                                                            <span className="text-[10px] uppercase font-bold text-slate-500">
-                                                                {tab.type}
-                                                            </span>
                                                         </div>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => handleDeleteTab(idx)}
-                                                            className="text-rose-500 hover:text-rose-600 h-6 w-6 p-0"
-                                                            title="Sekmeyi Sil"
-                                                        >
-                                                            <Trash2 className="w-3.5 h-3.5" />
-                                                        </Button>
-                                                    </div>
-
-                                                    <textarea
-                                                        rows={6}
-                                                        value={tab.content}
-                                                        onChange={(e) => {
-                                                            const val = e.target.value;
-                                                            setEditForm(p => ({
-                                                                ...p,
-                                                                tabs: p.tabs.map((t, i) => i === idx ? { ...t, content: val } : t)
-                                                            }));
-                                                        }}
-                                                        placeholder="Kod, devre bağlantı şeması veya açıklama metni girin..."
-                                                        className={`w-full p-2.5 rounded-lg text-xs font-mono border leading-relaxed outline-none focus:ring-1 focus:ring-indigo-500 ${
-                                                            isLight 
-                                                                ? "bg-slate-50 border-slate-200 text-slate-900" 
-                                                                : "bg-slate-950 border-slate-700 text-slate-200"
-                                                        }`}
-                                                    />
+                                                    )}
                                                 </div>
                                             ))}
+
+                                            {/* Bottom Quick-Add Toolbar for Convenience when user has tabs */}
+                                            {editForm.tabs.length > 0 && (
+                                                <div className={`p-3.5 rounded-xl border border-dashed flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left ${
+                                                    isLight ? "border-slate-300 bg-slate-100/70" : "border-slate-800 bg-slate-900/40"
+                                                }`}>
+                                                    <div>
+                                                        <p className={`text-xs font-bold ${isLight ? "text-slate-900" : "text-slate-200"}`}>
+                                                            Yeni bir sekme daha eklemek ister misiniz?
+                                                        </p>
+                                                        <p className={`text-[11px] ${isLight ? "text-slate-600" : "text-slate-400"}`}>
+                                                            Python kodu, Arduino devresi, Unity scripti veya genel not sekmeleri ekleyebilirsiniz.
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex flex-wrap items-center justify-center gap-1.5">
+                                                        <Button
+                                                            type="button"
+                                                            size="sm"
+                                                            onClick={() => handleAddTab("code")}
+                                                            className="h-7 px-2.5 text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-semibold"
+                                                        >
+                                                            <Plus className="w-3 h-3 mr-1" />
+                                                            + Kod
+                                                        </Button>
+                                                        <Button
+                                                            type="button"
+                                                            size="sm"
+                                                            onClick={() => handleAddTab("arduino")}
+                                                            className="h-7 px-2.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-semibold"
+                                                        >
+                                                            <Plus className="w-3 h-3 mr-1" />
+                                                            + Arduino
+                                                        </Button>
+                                                        <Button
+                                                            type="button"
+                                                            size="sm"
+                                                            onClick={() => handleAddTab("unity")}
+                                                            className="h-7 px-2.5 text-xs bg-blue-600 hover:bg-blue-500 text-white font-semibold"
+                                                        >
+                                                            <Plus className="w-3 h-3 mr-1" />
+                                                            + Unity
+                                                        </Button>
+                                                        <Button
+                                                            type="button"
+                                                            size="sm"
+                                                            onClick={() => handleAddTab("text")}
+                                                            className="h-7 px-2.5 text-xs bg-amber-600 hover:bg-amber-500 text-white font-semibold"
+                                                        >
+                                                            <Plus className="w-3 h-3 mr-1" />
+                                                            + Bilgi/Not
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
 
-                                        <div className="pt-2 flex justify-end gap-2">
+                                        {/* Bottom Action Buttons */}
+                                        <div className={`pt-3 border-t flex justify-end gap-2.5 ${isLight ? "border-slate-200" : "border-slate-800"}`}>
                                             <Button
                                                 variant="outline"
                                                 size="sm"
                                                 onClick={() => setIsEditingContent(false)}
-                                                className="text-xs"
+                                                className={`text-xs h-8 px-3 font-semibold ${
+                                                    isLight ? "border-slate-300 text-slate-700 hover:bg-slate-100" : "border-slate-700 text-slate-300"
+                                                }`}
                                             >
                                                 İptal
                                             </Button>
                                             <Button
                                                 size="sm"
                                                 onClick={handleSaveContent}
-                                                className="text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-semibold"
+                                                className="text-xs h-8 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold shadow-xs"
                                             >
-                                                <Save className="w-3.5 h-3.5 mr-1" />
+                                                <Save className="w-3.5 h-3.5 mr-1.5" />
                                                 Değişiklikleri Kaydet
                                             </Button>
                                         </div>
@@ -1143,13 +1411,13 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                                             <div className="flex-1 flex flex-col overflow-hidden">
                                                 {/* Code / Content Area */}
                                                 <div className={`flex-1 overflow-auto p-3 text-xs md:text-sm font-mono scrollbar-thin ${
-                                                    isLight ? "bg-slate-50 text-slate-900" : "bg-[#181825] text-slate-100"
+                                                    isLight ? "bg-white text-slate-950" : "bg-[#181825] text-slate-100"
                                                 }`}>
                                                     {activeTab && (activeTab.type === "code" || activeTab.type === "arduino" || activeTab.type === "unity") ? (
                                                         <div className="flex">
                                                             {/* Line Numbers */}
-                                                            <div className={`select-none pr-4 text-right border-r mr-4 font-mono text-xs leading-relaxed shrink-0 ${
-                                                                isLight ? "text-slate-400 border-slate-200" : "text-slate-600 border-slate-800"
+                                                            <div className={`select-none pr-4 text-right border-r mr-4 font-mono text-xs leading-relaxed shrink-0 font-medium ${
+                                                                isLight ? "text-slate-500 border-slate-200" : "text-slate-600 border-slate-800"
                                                             }`}>
                                                                 {activeTab.content.split("\n").map((_, i) => (
                                                                     <div key={i}>{i + 1}</div>
@@ -1167,20 +1435,28 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                                                     ) : activeTab ? (
                                                         /* Markdown / Text View */
                                                         <div className="p-2 space-y-3 font-sans text-xs md:text-sm leading-relaxed">
-                                                            <div className={`p-3 rounded-lg border ${
-                                                                isLight ? "bg-indigo-50 border-indigo-200 text-indigo-900" : "bg-indigo-500/10 border-indigo-500/20 text-indigo-200"
+                                                            <div className={`p-3.5 rounded-lg border ${
+                                                                isLight 
+                                                                    ? "bg-indigo-50/90 border border-indigo-300 text-indigo-950 shadow-xs" 
+                                                                    : "bg-indigo-500/10 border-indigo-500/20 text-indigo-200"
                                                             }`}>
-                                                                <div className="flex items-center gap-2 font-bold mb-1">
+                                                                <div className={`flex items-center gap-2 font-extrabold mb-1 ${
+                                                                    isLight ? "text-indigo-950" : "text-indigo-200"
+                                                                }`}>
                                                                     {getTabIcon(activeTab.type)}
                                                                     <span>{activeTab.title}</span>
                                                                 </div>
-                                                                <p className="text-xs opacity-80">
+                                                                <p className={`text-xs leading-relaxed ${
+                                                                    isLight ? "text-indigo-900 font-medium" : "text-indigo-300 opacity-90"
+                                                                }`}>
                                                                     {currentWeekPlan.summary}
                                                                 </p>
                                                             </div>
 
-                                                            <div className={`p-4 rounded-lg border whitespace-pre-wrap font-sans ${
-                                                                isLight ? "bg-white border-slate-200 text-slate-800" : "bg-[#1e1e2e] border-slate-800 text-slate-200"
+                                                            <div className={`p-4 rounded-lg border whitespace-pre-wrap font-sans leading-relaxed ${
+                                                                isLight 
+                                                                    ? "bg-white border-slate-300 text-slate-950 font-medium shadow-xs" 
+                                                                    : "bg-[#1e1e2e] border-slate-800 text-slate-200"
                                                             }`}>
                                                                 {activeTab.content}
                                                             </div>
