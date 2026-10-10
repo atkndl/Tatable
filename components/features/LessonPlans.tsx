@@ -207,97 +207,123 @@ print(f"Öğrenci Durumu: {ogrenci_mi}")`,
     "Seviye 3": [
         {
             week: 1,
-            title: "Fonksiyonlar, Metotlar ve Modüler Kodlama",
-            summary: "Parametre alan ve değer döndüren fonksiyonlar, kodun modüler yapısı ve kapsam (scope) kuralları.",
+            title: "EkoKampüs: Python Temelleri, Değişkenler & Veri Tipleri",
+            summary: "SKA 4, 11, 12 entegrasyonu, okul krokisi ve 5 bölge haritalama, Google Colab akış şeması, değişkenler, tip dönüşümleri ve Canva moodboard.",
             docUrl: DEFAULT_SEVIYE_3_HAFTA_1_DOC,
             codeFile: {
-                filename: "ModulerKodlama.cs",
-                language: "csharp",
-                code: `// ==========================================
-// SEVİYE 3 - HAFTA 1: FONKSİYONLAR & METOTLAR
-// Modüler Kodlama, Parametreler & Dönüş Tipleri
-// ==========================================
+                filename: "ekokampus_hafta1.py",
+                language: "python",
+                code: `# ==============================================================================
+# PROJE: EkoKampüs (Sürdürülebilir Okul Sistemi) - HAFTA 1
+# SKA Entegrasyonu: SKA 4 (Nitelikli Eğitim) + SKA 11 + SKA 12
+# Konu: Python Temelleri, Değişkenler, Veri Tipleri & Tip Dönüşümleri
+# ==============================================================================
 
-using System;
+print("========================================")
+print("🌱 EKOKAMPÜS: SÜRDÜRÜLEBİLİR OKUL SİSTEMİ")
+print("========================================")
+print("Odak Bölgeleri: Kantin | Enerji | Ulaşım | Atık | Bahçe\\n")
 
-class Program 
-{
-    // 1. Değer döndürmeyen (void) bilgilendirme metodu
-    static void SelamVer(string ogrenciAdi) 
-    {
-        Console.WriteLine($"[SİSTEM] Hoş geldin {ogrenciAdi}! Derse başlıyoruz.");
-    }
+# 1. DERS 3: Değişken Tanımlama & Veri Tipleri (str, int, float, bool)
+# Kurallar: Anlamlı isimler, snake_case, Türkçe karakter/boşluk kullanmama
+bolge_adi = "Ulaşım"             # string (metin)
+bolge_puani = 80                 # integer (tam sayı)
+enerji_sarfiyati = 120.5         # float (ondalıklı sayı - kWh)
+ogrenci_sayisi = 450             # integer (tam sayı)
+surdurulebilir_mi = True         # boolean (mantıksal değer)
 
-    // 2. Parametre alan ve değer döndüren (return) metot
-    static int SkorHesapla(int temelPuan, int bonus, int carpan) 
-    {
-        int toplamPuan = (temelPuan + bonus) * carpan;
-        return toplamPuan; // Değeri çağrıldığı yere geri fırlatır
-    }
+# Değişken tiplerini type() fonksiyonu ile inceleyelim:
+print("--- Veri Tipleri Kontrolü ---")
+print("Bölge Adı Tipi        :", type(bolge_adi))
+print("Bölge Puanı Tipi      :", type(bolge_puani))
+print("Enerji Sarfiyatı Tipi :", type(enerji_sarfiyati))
+print("Sürdürülebilirlik     :", type(surdurulebilir_mi))
+print()
 
-    // 3. Karar yapısı barındıran kontrol metodu
-    static bool SeviyeGecildiMi(int puan, int baraj) 
-    {
-        if (puan >= baraj) 
-        {
-            return true;
-        } 
-        else 
-        {
-            return false;
-        }
-    }
+# 2. DERS 3: Tip Dönüşümü (Type Casting) & TypeError Çözümü
+# Kullanıcıdan/anketten gelen veriler hafızada genellikle metin (str) olarak gelir:
+gelen_puan = "90"                # string tipinde veri
+print(f"Gelen Ham Puan: '{gelen_puan}' | Veri Tipi: {type(gelen_puan)}")
 
-    static void Main(string[] args) 
-    {
-        // Metot çağrısı (Method Call)
-        SelamVer("Mert");
+# Metni tam sayıya dönüştürüp bonus puan ekliyoruz:
+puan_sayisal = int(gelen_puan)
+bonus_puan = 10
+yeni_puan = puan_sayisal + bonus_puan
+print("Hesaplanan Yeni Puan (Bonus Dahil):", yeni_puan)
 
-        int finalPuani = SkorHesapla(100, 25, 2);
-        Console.WriteLine($"Hesaplanan Toplam Puan: {finalPuani}");
+# DİKKAT: print("Ulaşım puanın: " + yeni_puan) -> TypeError verir!
+# Çözüm 1: str() ile tip dönüştürme
+print("Ulaşım Bölgesi Puanı (str dönüşümü): " + str(yeni_puan))
 
-        bool basarili = SeviyeGecildiMi(finalPuani, 200);
-        if (basarili) 
-        {
-            Console.WriteLine("🎉 Tebrikler! Seviye 3 - Hafta 1 başarıyla tamamlandı.");
-        } 
-        else 
-        {
-            Console.WriteLine("Baraj puanına ulaşılamadı. Tekrar deneyiniz.");
-        }
-    }
-}`,
-                output: `[SİSTEM] Hoş geldin Mert! Derse başlıyoruz.
-Hesaplanan Toplam Puan: 250
-🎉 Tebrikler! Seviye 3 - Hafta 1 başarıyla tamamlandı.
+# Çözüm 2: Modern f-string formatı (Tavsiye Edilen)
+print(f"[EkoKampüs Özet] {bolge_adi} bölgesi için güncel skor: {yeni_puan}/100")
 
-Process finished with exit code 0 (Execution time: 0.08s)`
+# Ondalıklı tip dönüşümü (float casting)
+karbon_salinimi = float("120.5")
+print(f"Günlük Tahmini Karbon Salınımı: {karbon_salinimi} kg CO2")`,
+                output: `========================================
+🌱 EKOKAMPÜS: SÜRDÜRÜLEBİLİR OKUL SİSTEMİ
+========================================
+Odak Bölgeleri: Kantin | Enerji | Ulaşım | Atık | Bahçe
+
+--- Veri Tipleri Kontrolü ---
+Bölge Adı Tipi        : <class 'str'>
+Bölge Puanı Tipi      : <class 'int'>
+Enerji Sarfiyatı Tipi : <class 'float'>
+Sürdürülebilirlik     : <class 'bool'>
+
+Gelen Ham Puan: '90' | Veri Tipi: <class 'str'>
+Hesaplanan Yeni Puan (Bonus Dahil): 100
+Ulaşım Bölgesi Puanı (str dönüşümü): 100
+[EkoKampüs Özet] Ulaşım bölgesi için güncel skor: 100/100
+Günlük Tahmini Karbon Salınımı: 120.5 kg CO2
+
+[Program başarıyla tamamlandı - Exit Code: 0]`
             },
             tasks: {
-                filename: "Hafta1_Gorevler.cs",
-                code: `// ==========================================
-// SEVİYE 3 - HAFTA 1 ALIŞTIRMALARI & GÖREVLER
-// ==========================================
+                filename: "ekokampus_gorevler.py",
+                code: `# ==============================================================================
+# SEVİYE 3 - HAFTA 1 ÖĞRENCİ GÖREVLERİ & ALIŞTIRMALARI
+# ==============================================================================
 
-// GÖREV 1: İki tam sayının ortalamasını double tipinde döndüren 
-// 'OrtalamaHesapla(int s1, int s2)' metodunu yazın.
+# GÖREV 1 (Kantin Bölgesi & Float Dönüşümü):
+# Bir öğrencinin öğle yemeğinde ürettiği atık miktarı 'tabak_atik_miktari = "35.5"' 
+# olarak kaydedilmiştir. Bu metni float'a çevirip 10 kg azaltarak yeni değeri yazdırın.
 
-// GÖREV 2: Verilen sıcaklık değerine göre:
-// Derece < 10 ise "Soğuk", 10-25 arası ise "Ilık", > 25 ise "Sıcak"
-// döndüren 'HavaDurumuAnaliz(int derece)' metodunu tamamlayın.
+# GÖREV 2 (Enerji Modülü & Aritmetik Hesaplama):
+# Bir sınıfta harcanan kilovatı 'harcanan_kwh = "125"' metninden int'e çevirin.
+# Birim fiyat olan 2.5 TL (float) ile çarparak toplam elektrik maliyetini hesaplayın.
 
-// GÖREV 3: Can ve alınan hasar değerlerini alıp, 
-// kalan can 0'ın altına inerse 0 döndüren 'HasarUygula' fonksiyonunu kodlayın.`
+# GÖREV 3 (TypeError Düzeltme):
+# Aşağıdaki kod satırındaki TypeError hatasını str() veya f-string kullanarak düzeltin:
+# bolge = "Atık ve Geri Dönüşüm"
+# kutu_sayisi = 12
+# print(bolge + " alanında toplam kutu sayısı: " + kutu_sayisi)
+
+# GÖREV 4 (Tasarım & Moodboard Renk Paleti):
+# EkoKampüs için seçtiğiniz doğa dostu 3-4 renk kodunu (örn: #2ecc71, #27ae60) 
+# ve 1 yazı tipi adını ekrana yazdıracak Python kodunu yazın.`
             },
-            notesMarkdown: `### 🎯 Hafta 1 Hedef & Kazanımlar:
-1. **DRY Prensibi (Don't Repeat Yourself):** Kod tekrarını önleyip aynı mantığı fonksiyonlaştırma.
-2. **Parametre ve Argüman:** Fonksiyon tanımındaki değişkenler parametre, gönderilen somut değerler argümandır.
-3. **Void vs Return:** Çıktı üreten fonksiyonlar ile sadece işlem yapan fonksiyonların ayrımı.
-4. **Scope (Değişken Kapsamı):** Fonksiyon içinde tanımlanan lokal değişkenlerin dışarıdan erişilememesi.`,
-            teacherAiNotes: `🤖 Yapay Zeka Eğitmen Rehberi:
-- **Kritik Yanılgı:** Öğrenciler 'Console.WriteLine' ile 'return' arasındaki farkı sıklıkla karıştırır. Console.WriteLine sadece ekrana yazı yazar, return ise programın diğer parçalarının o değeri hafızada kullanmasını sağlar.
-- **Sınıfta Sor:** "SkorHesapla fonksiyonundaki toplamPuan değişkenini Main içinde yazdırmaya çalışırsak neden hata alırız?"
-- **Canlı Kodlama:** Fonksiyon parametrelerini değiştirerek dinamik davranışları tahtada test edin.`
+            notesMarkdown: `### 🎯 Hafta 1 Ders Planı & Kazanımlar (EkoKampüs):
+- **Ders 1 (Okul Krokisi ve Bölge Haritalama):**
+  - SKA 4 (Nitelikli Eğitim), SKA 11 (Sürdürülebilir Şehirler) ve SKA 12 (Sorumlu Üretim/Tüketim).
+  - Okul krokisi üzerinde 5 ana bölge: *Kantin, Sınıf/Enerji, Ulaşım, Atık, Bahçe/Yeşil Alan*.
+- **Ders 2 (Colab, Algoritma ve Akış Şeması):**
+  - Akış şeması: *Başla → Bölge seç → Soru sor → Puan hesapla → Öneri sun → Bitir*.
+  - Google Colab arayüzü ve ilk \`print()\` fonksiyonunun çalıştırılması.
+- **Ders 3 (Python Değişkenler ve Veri Tipleri):**
+  - Değişken isimlendirme kuralları (snake_case, harf/alt çizgi ile başlama, Türkçe karakter kullanmama).
+  - Temel veri tipleri: \`str\`, \`int\`, \`float\`, \`bool\` ve \`type()\` kontrolleri.
+  - Tip dönüşümü (type casting): \`int("90")\`, \`float("120.5")\`, \`str(sayi)\`.
+  - \`TypeError: can only concatenate str to str\` hatasının çözümü.
+- **Ders 4 (Grafik Tasarım Temelleri & Dijital Moodboard):**
+  - Canva ile 3-4 renkli palet, 1 yazı tipi ve telif kurallarına uygun görsel kolajı oluşturma.
+  - Dosya türleri (.png, .jpg, .svg) ve ekran tasarımına hazırlık.`,
+            teacherAiNotes: `🤖 Yapay Zeka Eğitmen Tavsiyeleri & Kritik Noktalar:
+- **Kritik Yanılgı:** Öğrenciler \`print("Ulaşım puanın: " + yeni_puan)\` yazdıklarında Python metin ile tam sayıyı doğrudan birleştiremez. Bu hatayı tahtada bilerek aldırın ve \`TypeError\` ile nasıl başa çıkacaklarını (str() veya f-string) gösterin.
+- **Hafta 2 Bağlantısı:** Öğrencilere hatırlatın: "Hafta 2'de kullanıcıdan \`input()\` ile veri alacağız. \`input()\` her zaman metin (str) döndürdüğü için bu tip dönüşümleri projenin belkemiği olacak."
+- **Sınıf İçi Soru:** "Kantinde tabağını bitiren bir öğrenciye neden düşük öncelikli ceza, yüksek çevre puanı veririz?"
+- **Tasarım:** Canva moodboard çalışmasında telif haklarına dikkat çekin; telifsiz veya kaynak belirtilmiş görseller kullandırın.`
         },
         {
             week: 2,
