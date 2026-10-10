@@ -39,219 +39,13 @@ interface LessonPlansProps {
     onSwitchToMesai: () => void;
 }
 
-type LevelType = "Seviye 1" | "Seviye 2" | "Seviye 3";
-type ContentType = "code" | "arduino" | "unity" | "text" | "tasks" | "notes";
-
-export interface PlanTab {
-    id: string;
-    title: string;
-    type: ContentType;
-    filename?: string;
-    language?: string; // python, csharp, cpp, javascript, markdown, etc.
-    content: string;
-    output?: string;
-}
-
-export interface WeekPlan {
-    week: number;
-    title: string;
-    summary: string;
-    category?: string;
-    docUrl?: string; // Google Docs link
-    hasRealData: boolean; // true ONLY when verified real data exists
-    tabs: PlanTab[];
-}
-
-// Default Google Docs link provided by user for Seviye 3 Hafta 1
-const DEFAULT_SEVIYE_3_HAFTA_1_DOC = "https://docs.google.com/document/d/15dPpS36dixuKTY6SnWyoWlWS-SAMWW3C/edit";
-
-// Real curriculum base data: ONLY Seviye 3 Hafta 1 has real data! All other weeks are clean placeholders.
-const INITIAL_CURRICULUM: Record<LevelType, WeekPlan[]> = {
-    "Seviye 1": Array.from({ length: 8 }, (_, i) => ({
-        week: i + 1,
-        title: `Hafta ${i + 1} Ders Planı`,
-        summary: "Bu hafta için henüz ders planı tanımlanmadı. Google Docs linki veya içerik ekleyebilirsiniz.",
-        hasRealData: false,
-        docUrl: "",
-        category: "Genel",
-        tabs: []
-    })),
-    "Seviye 2": Array.from({ length: 8 }, (_, i) => ({
-        week: i + 1,
-        title: `Hafta ${i + 1} Ders Planı`,
-        summary: "Bu hafta için henüz ders planı tanımlanmadı. Google Docs linki veya içerik ekleyebilirsiniz.",
-        hasRealData: false,
-        docUrl: "",
-        category: "Genel",
-        tabs: []
-    })),
-    "Seviye 3": [
-        // Hafta 1: REAL DATA verified from user's Google Doc
-        {
-            week: 1,
-            title: "EkoKampüs: Python Temelleri, Değişkenler & Veri Tipleri",
-            summary: "SKA 4, 11, 12 entegrasyonu, okul krokisi 5 bölge haritalama, Google Colab akış şeması, değişkenler, tip dönüşümleri ve Canva moodboard.",
-            category: "Yazılım / Python",
-            docUrl: DEFAULT_SEVIYE_3_HAFTA_1_DOC,
-            hasRealData: true,
-            tabs: [
-                {
-                    id: "python_code",
-                    title: "ekokampus_hafta1.py",
-                    type: "code",
-                    filename: "ekokampus_hafta1.py",
-                    language: "python",
-                    content: `# ==============================================================================
-# PROJE: EkoKampüs (Sürdürülebilir Okul Sistemi) - HAFTA 1
-# SKA Entegrasyonu: SKA 4 (Nitelikli Eğitim) + SKA 11 + SKA 12
-# Konu: Python Temelleri, Değişkenler, Veri Tipleri & Tip Dönüşümleri
-# ==============================================================================
-
-print("========================================")
-print("🌱 EKOKAMPÜS: SÜRDÜRÜLEBİLİR OKUL SİSTEMİ")
-print("========================================")
-print("Odak Bölgeleri: Kantin | Enerji | Ulaşım | Atık | Bahçe\\n")
-
-# 1. DERS 3: Değişken Tanımlama & Veri Tipleri (str, int, float, bool)
-# Kurallar: Anlamlı isimler, snake_case, Türkçe karakter/boşluk kullanmama
-bolge_adi = "Ulaşım"             # string (metin)
-bolge_puani = 80                 # integer (tam sayı)
-enerji_sarfiyati = 120.5         # float (ondalıklı sayı - kWh)
-ogrenci_sayisi = 450             # integer (tam sayı)
-surdurulebilir_mi = True         # boolean (mantıksal değer)
-
-# Değişken tiplerini type() fonksiyonu ile inceleyelim:
-print("--- Veri Tipleri Kontrolü ---")
-print("Bölge Adı Tipi        :", type(bolge_adi))
-print("Bölge Puanı Tipi      :", type(bolge_puani))
-print("Enerji Sarfiyatı Tipi :", type(enerji_sarfiyati))
-print("Sürdürülebilirlik     :", type(surdurulebilir_mi))
-print()
-
-# 2. DERS 3: Tip Dönüşümü (Type Casting) & TypeError Çözümü
-# Kullanıcıdan/anketten gelen veriler hafızada genellikle metin (str) olarak gelir:
-gelen_puan = "90"                # string tipinde veri
-print(f"Gelen Ham Puan: '{gelen_puan}' | Veri Tipi: {type(gelen_puan)}")
-
-# Metni tam sayıya dönüştürüp bonus puan ekliyoruz:
-puan_sayisal = int(gelen_puan)
-bonus_puan = 10
-yeni_puan = puan_sayisal + bonus_puan
-print("Hesaplanan Yeni Puan (Bonus Dahil):", yeni_puan)
-
-# DİKKAT: print("Ulaşım puanın: " + yeni_puan) -> TypeError verir!
-# Çözüm 1: str() ile tip dönüştürme
-print("Ulaşım Bölgesi Puanı (str dönüşümü): " + str(yeni_puan))
-
-# Çözüm 2: Modern f-string formatı (Tavsiye Edilen)
-print(f"[EkoKampüs Özet] {bolge_adi} bölgesi için güncel skor: {yeni_puan}/100")
-
-# Ondalıklı tip dönüşümü (float casting)
-karbon_salinimi = float("120.5")
-print(f"Günlük Tahmini Karbon Salınımı: {karbon_salinimi} kg CO2")`,
-                    output: `========================================
-🌱 EKOKAMPÜS: SÜRDÜRÜLEBİLİR OKUL SİSTEMİ
-========================================
-Odak Bölgeleri: Kantin | Enerji | Ulaşım | Atık | Bahçe
-
---- Veri Tipleri Kontrolü ---
-Bölge Adı Tipi        : <class 'str'>
-Bölge Puanı Tipi      : <class 'int'>
-Enerji Sarfiyatı Tipi : <class 'float'>
-Sürdürülebilirlik     : <class 'bool'>
-
-Gelen Ham Puan: '90' | Veri Tipi: <class 'str'>
-Hesaplanan Yeni Puan (Bonus Dahil): 100
-Ulaşım Bölgesi Puanı (str dönüşümü): 100
-[EkoKampüs Özet] Ulaşım bölgesi için güncel skor: 100/100
-Günlük Tahmini Karbon Salınımı: 120.5 kg CO2
-
-[Program başarıyla tamamlandı - Exit Code: 0]`
-                },
-                {
-                    id: "tasks",
-                    title: "Öğrenci Görevleri",
-                    type: "tasks",
-                    filename: "ekokampus_gorevler.py",
-                    language: "python",
-                    content: `# ==============================================================================
-# SEVİYE 3 - HAFTA 1 ÖĞRENCİ GÖREVLERİ & ALIŞTIRMALARI
-# ==============================================================================
-
-# GÖREV 1 (Kantin Bölgesi & Float Dönüşümü):
-# Bir öğrencinin öğle yemeğinde ürettiği atık miktarı 'tabak_atik_miktari = "35.5"' 
-# olarak kaydedilmiştir. Bu metni float'a çevirip 10 kg azaltarak yeni değeri yazdırın.
-
-# GÖREV 2 (Enerji Modülü & Aritmetik Hesaplama):
-# Bir sınıfta harcanan kilovatı 'harcanan_kwh = "125"' metninden int'e çevirin.
-# Birim fiyat olan 2.5 TL (float) ile çarparak toplam elektrik maliyetini hesaplayın.
-
-# GÖREV 3 (TypeError Düzeltme):
-# Aşağıdaki kod satırındaki TypeError hatasını str() veya f-string kullanarak düzeltin:
-# bolge = "Atık ve Geri Dönüşüm"
-# kutu_sayisi = 12
-# print(bolge + " alanında toplam kutu sayısı: " + kutu_sayisi)
-
-# GÖREV 4 (Tasarım & Moodboard Renk Paleti):
-# EkoKampüs için seçtiğiniz doğa dostu 3-4 renk kodunu (örn: #2ecc71, #27ae60) 
-# ve 1 yazı tipi adını ekrana yazdıracak Python kodunu yazın.`
-                },
-                {
-                    id: "curriculum_notes",
-                    title: "Kazanımlar & 4 Ders",
-                    type: "text",
-                    filename: "kazanimlar.md",
-                    language: "markdown",
-                    content: `### 🎯 Hafta 1 Ders Planı & Kazanımlar (EkoKampüs)
-
-#### 1. Ders: Okul Krokisi ve Bölge Haritalama
-- SKA 4 (Nitelikli Eğitim), SKA 11 (Sürdürülebilir Şehirler) ve SKA 12 (Sorumlu Tüketim).
-- Okul krokisi üzerinde 5 ana bölge: **Kantin, Sınıf/Enerji, Ulaşım, Atık, Bahçe/Yeşil Alan**.
-
-#### 2. Ders: Colab, Algoritma ve Akış Şeması
-- EkoKampüs akış şeması: **Başla → Bölge seç → Soru sor → Puan hesapla → Öneri sun → Bitir**.
-- Google Colab ortamı ve ilk \`print()\` komutlarının çalıştırılması.
-
-#### 3. Ders: Python Değişkenler ve Veri Tipleri
-- Değişken isimlendirme kuralları (snake_case, boşluk ve Türkçe karakter kullanmama).
-- Temel veri tipleri: \`str\`, \`int\`, \`float\`, \`bool\` ve \`type()\` kontrolleri.
-- Tip dönüşümü: \`int("90")\`, \`float("120.5")\`, \`str(sayi)\`.
-- \`TypeError\` hatası ve çözümü.
-
-#### 4. Ders: Grafik Tasarım Temelleri & Dijital Moodboard
-- Canva ile 3-4 renkli doğa paleti, 1 yazı tipi ve telif kurallarına uygun görsel kolajı.
-- Dosya türleri (.png, .jpg, .svg) ve ekran tasarımına hazırlık.`
-                },
-                {
-                    id: "teacher_tips",
-                    title: "Eğitmen Rehberi",
-                    type: "notes",
-                    filename: "egitmen_notlari.md",
-                    language: "markdown",
-                    content: `🤖 Yapay Zeka Eğitmen Tavsiyeleri & Kritik Noktalar:
-
-1. **Kritik Yanılgı:** Öğrenciler \`print("Ulaşım puanın: " + yeni_puan)\` yazdıklarında Python metin ile tam sayıyı doğrudan birleştiremez. Bu hatayı tahtada bilerek aldırın ve \`TypeError\` ile nasıl başa çıkacaklarını (str() veya f-string) gösterin.
-
-2. **Hafta 2 Bağlantısı:** Öğrencilere hatırlatın: "Hafta 2'de kullanıcıdan \`input()\` ile veri alacağız. \`input()\` her zaman metin (str) döndürdüğü için bu tip dönüşümleri projenin belkemiği olacak."
-
-3. **Sınıf İçi Soru:** "Kantinde tabağını bitiren bir öğrenciye neden düşük öncelikli ceza, yüksek çevre puanı veririz?"
-
-4. **Tasarım:** Canva moodboard çalışmasında telif haklarına dikkat çekin; telifsiz veya kaynak belirtilmiş görseller kullandırın.`
-                }
-            ]
-        },
-        // Haftalar 2-8: clean placeholders without fake data
-        ...Array.from({ length: 7 }, (_, i) => ({
-            week: i + 2,
-            title: `Hafta ${i + 2} Ders Planı`,
-            summary: "Bu hafta için henüz ders planı tanımlanmadı. Google Docs linki veya içerik ekleyebilirsiniz.",
-            hasRealData: false,
-            docUrl: "",
-            category: "Genel",
-            tabs: []
-        }))
-    ]
-};
+import { 
+    INITIAL_CURRICULUM, 
+    LevelType, 
+    ContentType, 
+    PlanTab, 
+    WeekPlan 
+} from "@/lib/curriculumData";
 
 // Helper: converts a Google Docs edit URL to an iframe-embeddable preview URL
 function getDocEmbedUrl(url: string): string {
@@ -383,9 +177,14 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
     // Copy all saved Google Docs links to clipboard for AI Assistant
     const handleCopyAllDocUrls = () => {
         const allUrls: Record<string, string> = { ...customDocUrls };
-        if (!allUrls["Seviye 3-W1"]) {
-            allUrls["Seviye 3-W1"] = DEFAULT_SEVIYE_3_HAFTA_1_DOC;
-        }
+        Object.entries(INITIAL_CURRICULUM).forEach(([lvl, weeks]) => {
+            weeks.forEach((w) => {
+                const k = `${lvl}-W${w.week}`;
+                if (!allUrls[k] && w.docUrl) {
+                    allUrls[k] = w.docUrl;
+                }
+            });
+        });
         const entries = Object.entries(allUrls).filter(([_, url]) => Boolean(url && url.trim()));
         if (entries.length === 0) {
             alert("Henüz kayıtlı bir Google Docs linki bulunamadı. Lütfen önce link ekleyin.");
