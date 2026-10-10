@@ -7,10 +7,12 @@ import { SalaryChart } from "@/components/features/SalaryChart";
 import { ShiftList } from "@/components/features/ShiftList";
 import { StreakTracker } from "@/components/features/StreakTracker";
 import { SummaryCards } from "@/components/features/SummaryCards";
+import { HubPortal } from "@/components/features/HubPortal";
+import { LessonPlans } from "@/components/features/LessonPlans";
 import { useShiftStore } from "@/lib/store";
 import { Select } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { Banknote, ChevronLeft, ChevronRight, LogOut, Calculator } from "lucide-react";
+import { Banknote, ChevronLeft, ChevronRight, LogOut, Calculator, ArrowLeft, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Auth from "@/components/auth/Auth";
 import { supabase } from "@/lib/supabase";
@@ -21,6 +23,8 @@ import { CalendarView } from "@/components/features/CalendarView";
 import { ProfileSettings } from "@/components/features/ProfileSettings";
 
 export default function Home() {
+  const [activeModule, setActiveModule] = useState<'hub' | 'mesai' | 'lesson-plans'>('hub');
+
   const {
     filterYear,
     filterMonth,
@@ -86,12 +90,32 @@ export default function Home() {
     "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"
   ];
 
+  // 1. Hub Portal (Landing Screen)
+  if (activeModule === 'hub') {
+    return <HubPortal onSelectModule={(mod) => setActiveModule(mod)} />;
+  }
+
+  // 2. Lesson Plans Screen
+  if (activeModule === 'lesson-plans') {
+    return (
+      <LessonPlans
+        onBackToHub={() => setActiveModule('hub')}
+        onSwitchToMesai={() => setActiveModule('mesai')}
+      />
+    );
+  }
+
+  // 3. Mesai Takip Module
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center bg-slate-50"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+    );
   }
 
   if (!user) {
-    return <Auth />;
+    return <Auth onBack={() => setActiveModule('hub')} />;
   }
 
   return (
@@ -101,6 +125,15 @@ export default function Home() {
         {/* Header Section */}
         <header className="flex flex-col md:flex-row justify-between items-center gap-4 border-b border-slate-200 pb-6">
           <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setActiveModule('hub')}
+              className="text-slate-600 border-slate-200 hover:bg-slate-100 mr-1"
+            >
+              <ArrowLeft className="w-4 h-4 mr-1.5" />
+              Ana Menü
+            </Button>
             <div className="p-3 bg-indigo-100 rounded-xl border border-indigo-200">
               <Banknote className="w-8 h-8 text-indigo-600" />
             </div>
@@ -111,7 +144,18 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 flex-wrap justify-center">
+            {/* Quick Switch to Lesson Plans */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setActiveModule('lesson-plans')}
+              className="text-indigo-600 border-indigo-200 hover:bg-indigo-50 font-semibold"
+            >
+              <BookOpen className="w-4 h-4 mr-1.5" />
+              Ders Planları
+            </Button>
+
             <div className="flex items-center gap-2 bg-white p-1 rounded-lg border border-slate-200 shadow-sm text-slate-700">
               <Button variant="ghost" size="icon" onClick={handlePrevMonth} className="hover:bg-slate-100 text-slate-600 hover:text-indigo-600">
                 <ChevronLeft className="w-5 h-5" />

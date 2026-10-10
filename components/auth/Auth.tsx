@@ -18,7 +18,11 @@ const PROFILES = [
     { name: "Mert Kaan Arslan", email: "arslanmertkaan09@gmail.com", color: "bg-cyan-500" },
 ];
 
-export default function Auth() {
+interface AuthProps {
+    onBack?: () => void;
+}
+
+export default function Auth({ onBack }: AuthProps = {}) {
     const [selectedProfile, setSelectedProfile] = useState<typeof PROFILES[0] | null>(null);
     const [password, setPassword] = useState('');
     const [customEmail, setCustomEmail] = useState(''); // For the "Magic Link" fallback
@@ -126,7 +130,18 @@ export default function Auth() {
 
     if (mode === 'profiles') {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4 animate-fade-in">
+            <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4 animate-fade-in relative">
+                {onBack && (
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onBack}
+                        className="absolute top-6 left-6 text-slate-500 hover:text-slate-900 hover:bg-slate-200/60"
+                    >
+                        <ArrowLeft className="w-4 h-4 mr-1.5" />
+                        Ana Menü
+                    </Button>
+                )}
                 <h1 className="text-3xl md:text-5xl font-bold text-slate-900 mb-12 tracking-tight">Kim giriş yapıyor?</h1>
 
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-6 md:gap-8 max-w-5xl w-full px-4">
