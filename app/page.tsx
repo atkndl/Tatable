@@ -12,18 +12,19 @@ import { LessonPlans } from "@/components/features/LessonPlans";
 import { useShiftStore } from "@/lib/store";
 import { Select } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { Banknote, ChevronLeft, ChevronRight, LogOut, Calculator, ArrowLeft, BookOpen } from "lucide-react";
+import { Banknote, ChevronLeft, ChevronRight, LogOut, Calculator, ArrowLeft, BookOpen, BarChart3, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Auth from "@/components/auth/Auth";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 
 import { CalendarView } from "@/components/features/CalendarView";
-
 import { ProfileSettings } from "@/components/features/ProfileSettings";
+import { AnalyticsDashboard } from "@/components/features/AnalyticsDashboard";
 
 export default function Home() {
   const [activeModule, setActiveModule] = useState<'hub' | 'mesai' | 'lesson-plans'>('hub');
+  const [mesaiTab, setMesaiTab] = useState<'monthly' | 'analytics'>('monthly');
 
   const {
     filterYear,
@@ -145,6 +146,34 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-3 flex-wrap justify-center">
+            {/* View Switcher: Aylık Takip vs Analitikler */}
+            <div className="flex items-center p-1 bg-slate-200/70 rounded-xl border border-slate-300 shadow-xs">
+              <button
+                type="button"
+                onClick={() => setMesaiTab('monthly')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  mesaiTab === 'monthly'
+                    ? "bg-white text-indigo-750 shadow-xs text-indigo-700"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <Calendar className="w-3.5 h-3.5" />
+                <span>Aylık Takip</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMesaiTab('analytics')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  mesaiTab === 'analytics'
+                    ? "bg-indigo-600 text-white shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <BarChart3 className="w-3.5 h-3.5" />
+                <span>Analitikler</span>
+              </button>
+            </div>
+
             {/* Quick Switch to Lesson Plans */}
             <Button
               variant="outline"
@@ -156,17 +185,20 @@ export default function Home() {
               Ders Planları
             </Button>
 
-            <div className="flex items-center gap-2 bg-white p-1 rounded-lg border border-slate-200 shadow-sm text-slate-700">
-              <Button variant="ghost" size="icon" onClick={handlePrevMonth} className="hover:bg-slate-100 text-slate-600 hover:text-indigo-600">
-                <ChevronLeft className="w-5 h-5" />
-              </Button>
-              <span className="min-w-[140px] text-center font-bold text-lg text-slate-800">
-                {monthNames[filterMonth]} {filterYear}
-              </span>
-              <Button variant="ghost" size="icon" onClick={handleNextMonth} className="hover:bg-slate-100 text-slate-600 hover:text-indigo-600">
-                <ChevronRight className="w-5 h-5" />
-              </Button>
-            </div>
+            {/* Month Selector: only in monthly view */}
+            {mesaiTab === 'monthly' && (
+              <div className="flex items-center gap-2 bg-white p-1 rounded-lg border border-slate-200 shadow-sm text-slate-700">
+                <Button variant="ghost" size="icon" onClick={handlePrevMonth} className="hover:bg-slate-100 text-slate-600 hover:text-indigo-600">
+                  <ChevronLeft className="w-5 h-5" />
+                </Button>
+                <span className="min-w-[140px] text-center font-bold text-lg text-slate-800">
+                  {monthNames[filterMonth]} {filterYear}
+                </span>
+                <Button variant="ghost" size="icon" onClick={handleNextMonth} className="hover:bg-slate-100 text-slate-600 hover:text-indigo-600">
+                  <ChevronRight className="w-5 h-5" />
+                </Button>
+              </div>
+            )}
 
             <div className="flex items-center gap-1">
               <Link href="/tools/salary-calculator">
@@ -185,56 +217,63 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Stats Section */}
-        <section className="animate-slide-up" style={{ animationDelay: '0.1s' }}>
-          <div className="space-y-8">
-            <SummaryCards />
-            <StreakTracker />
-            <CalendarView />
-          </div>
-        </section>
+        {/* BODY: Analytics View OR Monthly Tracker */}
+        {mesaiTab === 'analytics' ? (
+          <AnalyticsDashboard />
+        ) : (
+          <>
+            {/* Stats Section */}
+            <section className="animate-slide-up" style={{ animationDelay: '0.1s' }}>
+              <div className="space-y-8">
+                <SummaryCards />
+                <StreakTracker />
+                <CalendarView />
+              </div>
+            </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-          {/* Main Content: List and Charts */}
-          <div className="lg:col-span-2 space-y-8 animate-slide-up" style={{ animationDelay: '0.2s' }}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <SalaryChart />
-              <BranchChart />
+              {/* Main Content: List and Charts */}
+              <div className="lg:col-span-2 space-y-8 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <SalaryChart />
+                  <BranchChart />
+                </div>
+                <div className="space-y-4">
+                  <h2 className="text-xl font-semibold text-slate-200 bg-slate-900/5 px-2 py-1 rounded inline-block text-slate-700!">Mesai Geçmişi</h2>
+                  <ShiftList />
+                </div>
+              </div>
+
+              {/* Sidebar: Add Form */}
+              <div className="lg:col-span-1 animate-slide-up" style={{ animationDelay: '0.3s' }}>
+                <div className="sticky top-8">
+                  <AddShiftForm />
+
+                  {/* Quick Info Card */}
+                  <Card className="mt-6 bg-indigo-50 border-indigo-100 shadow-sm">
+                    <CardContent className="pt-6">
+                      <h3 className="font-semibold text-indigo-700 mb-2 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                        Bilgi
+                      </h3>
+                      <div className="text-sm text-slate-600 space-y-2">
+                        <p className="flex justify-between">
+                          <span>Saatlik Ücret:</span>
+                          <span className="font-bold text-slate-900">Brüt 809,00 ₺</span>
+                        </p>
+                        <p className="mt-4 text-xs text-slate-400 border-t border-indigo-100 pt-2">
+                          Veriler bulutta saklanır ve her cihazdan erişilebilir.
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+
             </div>
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold text-slate-200 bg-slate-900/5 px-2 py-1 rounded inline-block text-slate-700!">Mesai Geçmişi</h2>
-              <ShiftList />
-            </div>
-          </div>
-
-          {/* Sidebar: Add Form */}
-          <div className="lg:col-span-1 animate-slide-up" style={{ animationDelay: '0.3s' }}>
-            <div className="sticky top-8">
-              <AddShiftForm />
-
-              {/* Quick Info Card */}
-              <Card className="mt-6 bg-indigo-50 border-indigo-100 shadow-sm">
-                <CardContent className="pt-6">
-                  <h3 className="font-semibold text-indigo-700 mb-2 flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
-                    Bilgi
-                  </h3>
-                  <div className="text-sm text-slate-600 space-y-2">
-                    <p className="flex justify-between">
-                      <span>Saatlik Ücret:</span>
-                      <span className="font-bold text-slate-900">Brüt 809,00 ₺</span>
-                    </p>
-                    <p className="mt-4 text-xs text-slate-400 border-t border-indigo-100 pt-2">
-                      Veriler bulutta saklanır ve her cihazdan erişilebilir.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-
-        </div>
+          </>
+        )}
       </div>
     </div>
   );
