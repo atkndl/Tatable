@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart as PieChartIcon } from "lucide-react";
+import { getBranchHexColor } from "@/lib/branchColors";
 
 export function BranchChart() {
     const { shifts, filterYear, filterMonth, includePlanned } = useShiftStore();
@@ -33,19 +34,6 @@ export function BranchChart() {
 
         return Object.entries(branchStats).map(([name, value]) => ({ name, value }));
     }, [shifts, filterYear, filterMonth, includePlanned]);
-
-    const COLORS = [
-        '#f97316', // Ümraniye (Orange)
-        '#db2777', // Fatih (Pink)
-        '#bc16f9ff', // Küçükçekmece (Purple)
-        '#0b4a8f',  // Eğitim (Dark Blue)
-        '#10b981', // Bakırköy (Emerald)
-        '#ef4444', // Beyoğlu (Red)
-        '#eab308', // Esenler (Yellow)
-        '#06b6d4', // Esenyurt (Cyan)
-        '#6366f1', // Güngören (Indigo)
-        '#84cc16', // Tuzla (Lime)
-    ];
 
     if (data.length === 0) {
         return null;
@@ -74,7 +62,7 @@ export function BranchChart() {
                                 stroke="none"
                             >
                                 {data.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    <Cell key={`cell-${index}`} fill={getBranchHexColor(entry.name)} />
                                 ))}
                             </Pie>
                             <Tooltip

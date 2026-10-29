@@ -8,6 +8,7 @@ import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Shift, Branch, Level, ShiftType } from "@/lib/types";
+import { getBranchConfig } from "@/lib/branchColors";
 
 import { generateHolidayShifts } from "@/lib/holidays";
 
@@ -240,7 +241,19 @@ export function ShiftList() {
                                                     </span>
                                                 )}
                                             </td>
-                                            <td className="px-6 py-4">{shift.branch}</td>
+                                            <td className="px-6 py-4">
+                                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
+                                                    isPlanned
+                                                        ? "bg-slate-50 border-slate-300 text-slate-400 border-dashed"
+                                                        : getBranchConfig(shift.branch).badge
+                                                }`}>
+                                                    <span 
+                                                        className="w-1.5 h-1.5 rounded-full shrink-0" 
+                                                        style={{ backgroundColor: isPlanned ? "#94a3b8" : getBranchConfig(shift.branch).hex }}
+                                                    />
+                                                    {shift.branch}
+                                                </span>
+                                            </td>
                                             <td className="px-6 py-4">
                                                 <span className={`inline-flex items-center justify-center px-2 py-1 rounded-md text-xs font-bold border whitespace-nowrap ${isPlanned ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white text-slate-600 border-slate-200'}`}>
                                                     {shift.level}

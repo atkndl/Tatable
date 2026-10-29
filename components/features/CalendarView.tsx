@@ -5,23 +5,7 @@ import { useShiftStore } from "@/lib/store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarDays } from "lucide-react";
 import { Branch, Shift } from "@/lib/types";
-
-// Helper to get soft background colors for branches
-const getBranchColor = (branch: Branch) => {
-    switch (branch) {
-        case "Ümraniye": return "bg-orange-100 text-orange-700 border-orange-200";
-        case "Fatih": return "bg-pink-100 text-pink-700 border-pink-200";
-        case "Küçükçekmece": return "bg-purple-100 text-purple-700 border-purple-200";
-        case "Eğitim": return "bg-blue-100 text-blue-700 border-blue-200";
-        case "Bakırköy": return "bg-emerald-100 text-emerald-700 border-emerald-200";
-        case "Beyoğlu": return "bg-red-100 text-red-700 border-red-200";
-        case "Esenler": return "bg-yellow-100 text-yellow-700 border-yellow-200";
-        case "Esenyurt": return "bg-cyan-100 text-cyan-700 border-cyan-200";
-        case "Güngören": return "bg-indigo-100 text-indigo-700 border-indigo-200";
-        case "Tuzla": return "bg-lime-100 text-lime-700 border-lime-200";
-        default: return "bg-slate-100 text-slate-700 border-slate-200";
-    }
-};
+import { getBranchConfig } from "@/lib/branchColors";
 
 export function CalendarView() {
     const { shifts, filterYear, filterMonth } = useShiftStore();
@@ -104,40 +88,55 @@ export function CalendarView() {
 
                                 {dayShifts.map(shift => {
                                     const isPlanned = shift.status === 'planned';
-                                    const baseColor = getBranchColor(shift.branch);
-                                    // Make planned shifts lighter/different
-                                    const styleClass = isPlanned
-                                        ? "bg-slate-50 border-slate-200 text-slate-400 border-dashed" // Planned Style
-                                        : baseColor; // Completed Style
+                                    const branchConfig = getBranchConfig(shift.branch);
 
                                     return (
                                         <div
                                             key={shift.id}
                                             className={`
                                                 relative group
-                                                text-[10px] p-1.5 rounded border border-l-4
-                                                flex flex-col gap-0.5 leading-tight shadow-sm
-                                                ${styleClass}
+                                                text-[10px] p-1.5 rounded-md border leading-tight shadow-xs transition-all duration-200
+                                                ${isPlanned
+                                                    ? "bg-slate-50/90 border-slate-300 text-slate-400 border-dashed border-l-4 border-l-slate-300 hover:border-slate-400 hover:bg-white"
+                                                    : `${branchConfig.className} border-l-4 shadow-sm hover:brightness-95`
+                                                }
                                             `}
                                         >
-                                            <div className="font-bold truncate flex items-center justify-between">
-                                                {shift.branch}
-                                                {isPlanned && (
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleToggleStatus(shift);
-                                                        }}
-                                                        title="Tamamlandı olarak işaretle"
-                                                        className="ml-1 p-0.5 rounded-full hover:bg-emerald-100 text-slate-300 hover:text-emerald-600 transition-colors"
-                                                    >
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                                                    </button>
-                                                )}
+                                            <div className="font-bold truncate flex items-center justify-between gap-1">
+                                                <span className={`truncate ${isPlanned ? "text-slate-500 font-semibold" : "font-extrabold"}`}>
+                                                    {shift.branch}
+                                                </span>
+
+                                                {/* Toggle / Confirm Button */}
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleToggleStatus(shift);
+                                                    }}
+                                                    title={isPlanned ? "İşi onayla (tamamlandı olarak işaretle)" : "Planlandı durumuna geri al"}
+                                                    className={`p-0.5 rounded-full transition-all shrink-0 cursor-pointer ${
+                                                        isPlanned
+                                                            ? "text-slate-300 hover:text-emerald-600 hover:bg-emerald-50 hover:scale-125"
+                                                            : "text-emerald-700 hover:bg-black/10 hover:text-emerald-900"
+                                                    }`}
+                                                >
+                                                    {isPlanned ? (
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                            <circle cx="12" cy="12" r="9" />
+                                                        </svg>
+                                                    ) : (
+                                                        <div className="w-3.5 h-3.5 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                                                                <polyline points="20 6 9 17 4 12" />
+                                                            </svg>
+                                                        </div>
+                                                    )}
+                                                </button>
                                             </div>
-                                            <div className="flex justify-between opacity-90">
-                                                <span>{shift.level} • {shift.type}</span>
-                                                <span className="font-mono">{shift.hours}s</span>
+                                            <div className={`flex justify-between items-center text-[9px] mt-0.5 ${isPlanned ? "text-slate-400" : "opacity-90 font-medium"}`}>
+                                                <span className="truncate">{shift.level} • {shift.type}</span>
+                                                <span className="font-mono font-bold shrink-0 ml-1">{shift.hours}s</span>
                                             </div>
                                         </div>
                                     );
