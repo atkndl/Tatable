@@ -47,6 +47,12 @@ import {
     WeekPlan 
 } from "@/lib/curriculumData";
 
+import { 
+    COLAB_NOTEBOOKS, 
+    ColabNotebook, 
+    ColabCell 
+} from "@/lib/colabData";
+
 // Helper: converts a Google Docs edit URL to an iframe-embeddable preview URL
 function getDocEmbedUrl(url: string): string {
     if (!url) return "";
@@ -55,6 +61,61 @@ function getDocEmbedUrl(url: string): string {
     if (trimmed.includes("/edit")) return trimmed.replace(/\/edit(\?.*)?$/, "/preview");
     if (trimmed.includes("docs.google.com/document/d/")) return trimmed.replace(/\/$/, "") + "/preview";
     return trimmed;
+}
+
+// Helper: Renders markdown text from Colab cells
+function renderMarkdownCell(content: string, isLight: boolean) {
+    const lines = content.split("\n");
+    return (
+        <div className="space-y-1.5 text-xs md:text-sm font-sans leading-relaxed">
+            {lines.map((line, idx) => {
+                const trimmed = line.trim();
+                if (!trimmed) return <div key={idx} className="h-0.5" />;
+                if (trimmed.startsWith("# ")) {
+                    return (
+                        <h2 key={idx} className={`text-sm md:text-base font-extrabold pb-1 border-b ${
+                            isLight ? "text-indigo-950 border-amber-200" : "text-amber-400 border-amber-900/40"
+                        }`}>
+                            {trimmed.replace(/^#\s+/, "")}
+                        </h2>
+                    );
+                }
+                if (trimmed.startsWith("## ")) {
+                    return (
+                        <h3 key={idx} className={`text-xs md:text-sm font-bold mt-1.5 ${
+                            isLight ? "text-slate-900" : "text-amber-300"
+                        }`}>
+                            {trimmed.replace(/^##\s+/, "")}
+                        </h3>
+                    );
+                }
+                if (trimmed.startsWith("### ")) {
+                    return (
+                        <h4 key={idx} className={`text-xs font-bold ${
+                            isLight ? "text-slate-800" : "text-slate-200"
+                        }`}>
+                            {trimmed.replace(/^###\s+/, "")}
+                        </h4>
+                    );
+                }
+                if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
+                    return (
+                        <div key={idx} className="flex items-start gap-2 pl-2">
+                            <span className="text-amber-500 font-bold">•</span>
+                            <span className={isLight ? "text-slate-800 font-medium" : "text-slate-200"}>
+                                {trimmed.replace(/^[-*]\s+/, "")}
+                            </span>
+                        </div>
+                    );
+                }
+                return (
+                    <p key={idx} className={isLight ? "text-slate-800 font-medium" : "text-slate-300"}>
+                        {trimmed}
+                    </p>
+                );
+            })}
+        </div>
+    );
 }
 
 export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) {
@@ -88,6 +149,47 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
 
     // Fullscreen expansion modes (none, left, right)
     const [expandMode, setExpandMode] = useState<"none" | "left" | "right">("none");
+
+    // Google Colab Dropdown state for Seviye 3: "none" | "hafta-1" | "hafta-2" | "hafta-3" | "hafta-4" | "all"
+    const [selectedColab, setSelectedColab] = useState<string>("none");
+    const [colabViewMode, setColabViewMode] = useState<"notebook" | "code">("notebook");
+    const [copiedColab, setCopiedColab] = useState(false);
+    const [copiedCellId, setCopiedCellId] = useState<string | null>(null);
+
+    // Reset Colab selection when level changes away from Seviye 3
+    useEffect(() => {
+        if (selectedLevel !== "Seviye 3") {
+            setSelectedColab("none");
+        }
+    }, [selectedLevel]);
+
+    // Active Colab Notebook object
+    const currentColabNotebook = useMemo(() => {
+        if (selectedColab === "none" || selectedColab === "all") return null;
+        return COLAB_NOTEBOOKS[selectedColab] || null;
+    }, [selectedColab]);
+
+    // All colabs merged code
+    const allColabsMergedCode = useMemo(() => {
+        return ["hafta-1", "hafta-2", "hafta-3", "hafta-4"]
+            .map((id) => {
+                const nb = COLAB_NOTEBOOKS[id];
+                return `# ${"=".repeat(50)}\n# ${nb.title.toUpperCase()}\n# Colab URL: ${nb.url}\n# ${"=".repeat(50)}\n\n${nb.mergedCode}`;
+            })
+            .join("\n\n\n");
+    }, []);
+
+    const handleCopyColab = (code: string) => {
+        navigator.clipboard.writeText(code);
+        setCopiedColab(true);
+        setTimeout(() => setCopiedColab(false), 2000);
+    };
+
+    const handleCopySingleCell = (code: string, cellId: string) => {
+        navigator.clipboard.writeText(code);
+        setCopiedCellId(cellId);
+        setTimeout(() => setCopiedCellId(null), 1800);
+    };
 
     // Load theme, custom doc URLs and custom plans from localStorage
     useEffect(() => {
@@ -567,7 +669,7 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                 isLight ? "bg-white/90 border-slate-200" : "bg-slate-950/40 border-slate-800/80"
             }`}>
                 <div className="max-w-[1920px] mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 overflow-hidden">
+                    <div className="flex items-center gap-2 overflow-hidden flex-wrap">
                         <span className={`px-2.5 py-1 rounded text-[11px] font-extrabold uppercase tracking-wider shrink-0 ${
                             isLight 
                                 ? "bg-indigo-100 text-indigo-950 border border-indigo-300" 
@@ -584,6 +686,54 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                             }`}>
                                 {currentWeekPlan.category}
                             </span>
+                        )}
+
+                        {/* Seviye 3: Google Colab Dropdown in Sub-header */}
+                        {selectedLevel === "Seviye 3" && (
+                            <div className="flex items-center gap-1.5 sm:ml-2">
+                                <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border shadow-xs transition-colors ${
+                                    selectedColab !== "none"
+                                        ? "bg-amber-500 text-white border-amber-600 font-bold"
+                                        : isLight
+                                        ? "bg-amber-50/90 border-amber-300 text-amber-950"
+                                        : "bg-amber-950/30 border-amber-700/60 text-amber-300"
+                                }`}>
+                                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0" />
+                                    <span className="text-[11px] font-extrabold uppercase tracking-wider shrink-0">
+                                        Colab:
+                                    </span>
+                                    <select
+                                        value={selectedColab}
+                                        onChange={(e) => setSelectedColab(e.target.value)}
+                                        className={`h-6 text-xs font-bold rounded bg-transparent border-0 outline-none cursor-pointer ${
+                                            selectedColab !== "none"
+                                                ? "text-white font-extrabold"
+                                                : isLight
+                                                ? "text-slate-950"
+                                                : "text-amber-200"
+                                        }`}
+                                    >
+                                        <option value="none" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">
+                                            📄 Google Docs Planı
+                                        </option>
+                                        <option value="hafta-1" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">
+                                            Python Hafta 1
+                                        </option>
+                                        <option value="hafta-2" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">
+                                            Python Hafta 2
+                                        </option>
+                                        <option value="hafta-3" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">
+                                            Python Hafta 3
+                                        </option>
+                                        <option value="hafta-4" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">
+                                            Python Hafta 4
+                                        </option>
+                                        <option value="all" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">
+                                            Tümü
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
                         )}
                     </div>
 
@@ -657,75 +807,182 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                             
                             {/* Left Header */}
                             <div className={`border-b px-3 py-2 flex items-center justify-between gap-2 shrink-0 ${
-                                isLight ? "bg-slate-50 border-slate-200" : "bg-slate-900/90 border-slate-800"
+                                selectedColab !== "none"
+                                    ? isLight ? "bg-amber-50/90 border-amber-200" : "bg-[#1f1b13] border-amber-900/50"
+                                    : isLight ? "bg-slate-50 border-slate-200" : "bg-slate-900/90 border-slate-800"
                             }`}>
                                 <div className="flex items-center gap-2 min-w-0">
                                     <div className={`w-6 h-6 rounded flex items-center justify-center shrink-0 ${
-                                        isLight ? "bg-blue-100 text-blue-600" : "bg-blue-500/20 text-blue-400"
+                                        selectedColab !== "none"
+                                            ? "bg-amber-500/20 text-amber-500 font-bold"
+                                            : isLight ? "bg-blue-100 text-blue-600" : "bg-blue-500/20 text-blue-400"
                                     }`}>
-                                        <FileText className="w-3.5 h-3.5" />
+                                        {selectedColab !== "none" ? "⚡" : <FileText className="w-3.5 h-3.5" />}
                                     </div>
                                     <div className="min-w-0">
-                                        <div className="flex items-center gap-1.5">
-                                            <span className={`text-xs font-bold truncate ${isLight ? "text-slate-800" : "text-slate-200"}`}>
-                                                Haftalık Ders Planı (Google Docs)
+                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                            <span className={`text-xs font-bold truncate ${
+                                                selectedColab !== "none"
+                                                    ? isLight ? "text-amber-950 font-extrabold" : "text-amber-300 font-extrabold"
+                                                    : isLight ? "text-slate-800" : "text-slate-200"
+                                            }`}>
+                                                {selectedColab === "all" 
+                                                    ? "Google Colab • Tüm Python Dersleri (Hafta 1-4)" 
+                                                    : selectedColab !== "none" 
+                                                    ? `Google Colab • ${currentColabNotebook?.title}` 
+                                                    : "Haftalık Ders Planı (Google Docs)"}
                                             </span>
-                                            {embedUrl && (
+                                            {selectedColab === "none" && embedUrl && (
                                                 <span className="w-2 h-2 rounded-full bg-emerald-500" title="Aktif Önizleme" />
                                             )}
                                         </div>
                                     </div>
+
+                                    {/* Seviye 3 Colab Dropdown right here in panel header */}
+                                    {selectedLevel === "Seviye 3" && (
+                                        <div className="ml-2 flex items-center gap-1">
+                                            <select
+                                                value={selectedColab}
+                                                onChange={(e) => setSelectedColab(e.target.value)}
+                                                className={`h-7 text-xs font-bold rounded-md border px-2 outline-none shadow-xs transition-colors cursor-pointer ${
+                                                    selectedColab !== "none"
+                                                        ? "bg-amber-500 text-white border-amber-600"
+                                                        : isLight 
+                                                        ? "bg-white text-slate-800 border-slate-300 hover:border-amber-400" 
+                                                        : "bg-slate-900 text-slate-200 border-slate-700 hover:border-amber-400"
+                                                }`}
+                                            >
+                                                <option value="none" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">
+                                                    📄 Google Docs Planı
+                                                </option>
+                                                <option value="hafta-1" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">
+                                                    Python Hafta 1
+                                                </option>
+                                                <option value="hafta-2" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">
+                                                    Python Hafta 2
+                                                </option>
+                                                <option value="hafta-3" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">
+                                                    Python Hafta 3
+                                                </option>
+                                                <option value="hafta-4" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">
+                                                    Python Hafta 4
+                                                </option>
+                                                <option value="all" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">
+                                                    Tümü
+                                                </option>
+                                            </select>
+                                        </div>
+                                    )}
                                 </div>
 
-                                {/* Doc Actions */}
-                                <div className="flex items-center gap-1.5 shrink-0">
-                                    {effectiveDocUrl && (
-                                        <a
-                                            href={effectiveDocUrl}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
+                                {/* Actions: Colab actions OR Docs actions */}
+                                {selectedColab !== "none" ? (
+                                    <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+                                        {selectedColab !== "all" && currentColabNotebook?.url && (
+                                            <a
+                                                href={currentColabNotebook.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded bg-amber-600 hover:bg-amber-500 text-white shadow-xs transition-colors"
+                                                title="Google Colab'da Aç"
+                                            >
+                                                <ExternalLink className="w-3 h-3" />
+                                                <span>Colab&apos;da Aç</span>
+                                            </a>
+                                        )}
+                                        <button
+                                            type="button"
+                                            onClick={() => handleCopyColab(selectedColab === "all" ? allColabsMergedCode : (currentColabNotebook?.mergedCode || ""))}
+                                            className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded border transition-colors ${
+                                                isLight ? "bg-white text-slate-800 border-slate-300 hover:bg-slate-50" : "bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700"
+                                            }`}
+                                            title="Tüm Python kodunu kopyala"
+                                        >
+                                            {copiedColab ? (
+                                                <>
+                                                    <Check className="w-3 h-3 text-emerald-500" />
+                                                    <span className="text-emerald-500 font-bold">Kopyalandı</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Copy className="w-3 h-3 text-amber-500" />
+                                                    <span>Kodu Kopyala</span>
+                                                </>
+                                            )}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setColabViewMode(colabViewMode === "notebook" ? "code" : "notebook")}
+                                            className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded border transition-colors ${
+                                                isLight ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50" : "bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700"
+                                            }`}
+                                            title={colabViewMode === "notebook" ? "Ham Python kodunu görüntüle" : "Notebook kartlarını görüntüle"}
+                                        >
+                                            <FileCode className="w-3 h-3 text-indigo-500" />
+                                            <span>{colabViewMode === "notebook" ? "Ham Kod" : "Notebook"}</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setSelectedColab("none")}
+                                            className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded border transition-colors ${
+                                                isLight ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50" : "bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700"
+                                            }`}
+                                            title="Google Docs ders planı belgesine geri dön"
+                                        >
+                                            <FileText className="w-3 h-3 text-blue-500" />
+                                            <span>Docs&apos;a Dön</span>
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-1.5 shrink-0">
+                                        {effectiveDocUrl && (
+                                            <a
+                                                href={effectiveDocUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded transition-colors ${
+                                                    isLight 
+                                                        ? "bg-slate-200 text-slate-700 hover:bg-slate-300" 
+                                                        : "bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700"
+                                                }`}
+                                                title="Belgeyi yeni sekmede aç"
+                                            >
+                                                <ExternalLink className="w-3 h-3" />
+                                                <span>Sekmede Aç</span>
+                                            </a>
+                                        )}
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsEditingDocUrl(!isEditingDocUrl)}
+                                            className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded transition-colors ${
+                                                isLight 
+                                                    ? "bg-indigo-50 text-indigo-700 hover:bg-indigo-100" 
+                                                    : "bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20"
+                                            }`}
+                                            title="Bu haftanın Google Docs linkini değiştir veya ekle"
+                                        >
+                                            <Edit3 className="w-3 h-3" />
+                                            <span>Link Düzenle</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handleCopyAllDocUrls}
                                             className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded transition-colors ${
                                                 isLight 
                                                     ? "bg-slate-200 text-slate-700 hover:bg-slate-300" 
                                                     : "bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700"
                                             }`}
-                                            title="Belgeyi yeni sekmede aç"
+                                            title="Eklediğiniz tüm Google Docs linklerini kopyalar"
                                         >
-                                            <ExternalLink className="w-3 h-3" />
-                                            <span>Sekmede Aç</span>
-                                        </a>
-                                    )}
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsEditingDocUrl(!isEditingDocUrl)}
-                                        className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded transition-colors ${
-                                            isLight 
-                                                ? "bg-indigo-50 text-indigo-700 hover:bg-indigo-100" 
-                                                : "bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20"
-                                        }`}
-                                        title="Bu haftanın Google Docs linkini değiştir veya ekle"
-                                    >
-                                        <Edit3 className="w-3 h-3" />
-                                        <span>Link Düzenle</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={handleCopyAllDocUrls}
-                                        className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded transition-colors ${
-                                            isLight 
-                                                ? "bg-slate-200 text-slate-700 hover:bg-slate-300" 
-                                                : "bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700"
-                                        }`}
-                                        title="Eklediğiniz tüm Google Docs linklerini kopyalar"
-                                    >
-                                        <Copy className="w-3 h-3 text-indigo-400" />
-                                        <span>Tüm Linkleri Kopyala</span>
-                                    </button>
-                                </div>
+                                            <Copy className="w-3 h-3 text-indigo-400" />
+                                            <span>Tüm Linkleri Kopyala</span>
+                                        </button>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Google Docs URL Edit Drawer/Input */}
-                            {isEditingDocUrl && (
+                            {selectedColab === "none" && isEditingDocUrl && (
                                 <div className={`p-2.5 border-b flex flex-col sm:flex-row items-stretch sm:items-center gap-2 ${
                                     isLight ? "bg-slate-100 border-slate-200" : "bg-slate-900 border-slate-800"
                                 }`}>
@@ -762,51 +1019,232 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                                 </div>
                             )}
 
-                            {/* Google Docs Embed Container */}
-                            <div className="flex-1 relative overflow-hidden flex flex-col bg-white">
-                                {embedUrl ? (
-                                    <div className="w-full h-full relative bg-white">
-                                        <iframe
-                                            src={embedUrl}
-                                            className="w-full h-full border-0 absolute inset-0 bg-white"
-                                            title={`${selectedLevel} Hafta ${selectedWeek} Ders Planı`}
-                                            allow="autoplay"
-                                            loading="lazy"
-                                        />
-                                    </div>
-                                ) : (
-                                    <div className={`flex-1 flex flex-col items-center justify-center p-6 text-center ${
-                                        isLight ? "bg-slate-50 text-slate-500" : "bg-slate-950 text-slate-400"
-                                    }`}>
-                                        <div className={`w-12 h-12 rounded-2xl border flex items-center justify-center mb-3 ${
-                                            isLight ? "bg-white border-slate-200 text-slate-400" : "bg-slate-900 border-slate-800 text-slate-500"
+                            {/* MAIN PANEL CONTENT: GOOGLE COLAB CODES OR GOOGLE DOCS PREVIEW */}
+                            {selectedColab !== "none" ? (
+                                <div className={`flex-1 overflow-y-auto p-3 md:p-4 space-y-4 ${
+                                    isLight ? "bg-slate-100/70" : "bg-[#14141f]"
+                                }`}>
+                                    {/* If 'all' selected: week anchor navigation bar */}
+                                    {selectedColab === "all" && (
+                                        <div className={`sticky top-0 z-20 -mt-2 -mx-2 p-2.5 mb-3 border-b backdrop-blur-md flex items-center justify-between gap-2 flex-wrap ${
+                                            isLight ? "bg-white/95 border-slate-200 shadow-xs" : "bg-[#181825]/95 border-slate-800"
                                         }`}>
-                                            <FileText className="w-6 h-6" />
+                                            <span className="text-[11px] font-extrabold uppercase text-amber-600 dark:text-amber-400">
+                                                Hızlı Geçiş:
+                                            </span>
+                                            <div className="flex items-center gap-1.5 flex-wrap">
+                                                {["hafta-1", "hafta-2", "hafta-3", "hafta-4"].map((wId) => {
+                                                    const nb = COLAB_NOTEBOOKS[wId];
+                                                    return (
+                                                        <a
+                                                            key={wId}
+                                                            href={`#section-${wId}`}
+                                                            className={`text-[11px] font-bold px-2.5 py-1 rounded-md transition-colors ${
+                                                                isLight 
+                                                                    ? "bg-slate-100 text-slate-800 hover:bg-amber-100 hover:text-amber-900 border border-slate-200" 
+                                                                    : "bg-slate-800/80 text-slate-300 hover:bg-amber-950/60 hover:text-amber-200 border border-slate-700"
+                                                            }`}
+                                                        >
+                                                            {nb.title} ({nb.cells.length} Hücre)
+                                                        </a>
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
-                                        <h3 className={`text-sm font-semibold mb-1 ${isLight ? "text-slate-800" : "text-slate-200"}`}>
-                                            Bu Hafta İçin Google Docs Linki Tanımlanmamış
-                                        </h3>
-                                        <p className="text-xs max-w-sm mb-4 opacity-80">
-                                            {selectedLevel} Hafta {selectedWeek} için Google Docs plan linkinizi ekleyerek burada doğrudan önizleyebilirsiniz.
-                                        </p>
-                                        <Button
-                                            size="sm"
-                                            onClick={() => setIsEditingDocUrl(true)}
-                                            className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs h-8"
-                                        >
-                                            <Edit3 className="w-3.5 h-3.5 mr-1.5" />
-                                            Google Docs Linki Ekle
-                                        </Button>
-                                    </div>
-                                )}
-                            </div>
+                                    )}
+
+                                    {/* Content Rendering: single week OR all weeks */}
+                                    {(selectedColab === "all" ? ["hafta-1", "hafta-2", "hafta-3", "hafta-4"] : [selectedColab]).map((wId) => {
+                                        const nb = COLAB_NOTEBOOKS[wId];
+                                        if (!nb) return null;
+
+                                        return (
+                                            <div key={wId} id={`section-${wId}`} className="space-y-3 pt-1">
+                                                {/* Week Title & External Link Card */}
+                                                <div className={`p-3.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-xs ${
+                                                    isLight ? "bg-white border-amber-200/80" : "bg-[#1e1e2e] border-amber-900/40"
+                                                }`}>
+                                                    <div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                                                                Colab Notebook
+                                                            </span>
+                                                            <h3 className={`text-sm md:text-base font-extrabold ${isLight ? "text-slate-900" : "text-white"}`}>
+                                                                {nb.title}
+                                                            </h3>
+                                                            <span className="text-xs text-slate-500">
+                                                                • {nb.cells.length} Hücre
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-2">
+                                                        <a
+                                                            href={nb.url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white shadow-xs transition-colors"
+                                                        >
+                                                            <ExternalLink className="w-3.5 h-3.5" />
+                                                            <span>Google Colab&apos;da Aç</span>
+                                                        </a>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleCopyColab(nb.mergedCode)}
+                                                            className={`inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-lg border transition-colors ${
+                                                                isLight ? "bg-slate-50 border-slate-300 text-slate-700 hover:bg-slate-100" : "bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700"
+                                                            }`}
+                                                            title="Bu haftanın tüm kodlarını kopyala"
+                                                        >
+                                                            <Copy className="w-3.5 h-3.5 text-amber-500" />
+                                                            <span>Kodu Kopyala</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {/* Cells / Code view */}
+                                                {colabViewMode === "code" ? (
+                                                    <div className={`p-4 rounded-xl border font-mono text-xs md:text-sm overflow-x-auto leading-relaxed shadow-xs ${
+                                                        isLight ? "bg-white border-slate-300 text-slate-950 font-medium" : "bg-[#181825] border-slate-800 text-slate-100"
+                                                    }`}>
+                                                        {nb.mergedCode.split("\n").map((line, lIdx) => (
+                                                            <div key={lIdx} className="whitespace-pre">
+                                                                {renderColoredLine(line, isLight)}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <div className="space-y-3">
+                                                        {nb.cells.map((cell, cIdx) => {
+                                                            const cellKey = `${wId}-c-${cIdx}`;
+                                                            const isCode = cell.type === "code";
+
+                                                            if (!isCode) {
+                                                                return (
+                                                                    <div 
+                                                                        key={cellKey}
+                                                                        className={`p-3.5 rounded-xl border shadow-xs ${
+                                                                            isLight 
+                                                                                ? "bg-amber-50/50 border-amber-200/60 text-slate-900" 
+                                                                                : "bg-[#181825] border-slate-800/80 text-slate-200"
+                                                                        }`}
+                                                                    >
+                                                                        {renderMarkdownCell(cell.content, isLight)}
+                                                                    </div>
+                                                                );
+                                                            }
+
+                                                            return (
+                                                                <div 
+                                                                    key={cellKey}
+                                                                    className={`rounded-xl border overflow-hidden shadow-xs ${
+                                                                        isLight ? "bg-white border-slate-300" : "bg-[#1e1e2e] border-slate-800"
+                                                                    }`}
+                                                                >
+                                                                    <div className={`px-3 py-1.5 border-b flex items-center justify-between text-[11px] font-mono ${
+                                                                        isLight ? "bg-slate-100/80 border-slate-200 text-slate-600" : "bg-[#181825] border-slate-800 text-slate-400"
+                                                                    }`}>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                                                                            <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                                                                                Python [Hücre {cIdx + 1}]
+                                                                            </span>
+                                                                        </div>
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => handleCopySingleCell(cell.content, cellKey)}
+                                                                            className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded transition-colors ${
+                                                                                isLight ? "hover:bg-slate-200 text-slate-700" : "hover:bg-slate-700 text-slate-300"
+                                                                            }`}
+                                                                        >
+                                                                            {copiedCellId === cellKey ? (
+                                                                                <>
+                                                                                    <Check className="w-3 h-3 text-emerald-500" />
+                                                                                    <span className="text-emerald-500 font-bold">Kopyalandı</span>
+                                                                                </>
+                                                                            ) : (
+                                                                                <>
+                                                                                    <Copy className="w-3 h-3" />
+                                                                                    <span>Kopyala</span>
+                                                                                </>
+                                                                            )}
+                                                                        </button>
+                                                                    </div>
+                                                                    <div className={`p-3 overflow-x-auto text-xs md:text-sm font-mono leading-relaxed ${
+                                                                        isLight ? "bg-slate-50 text-slate-950 font-medium" : "bg-[#181825] text-slate-100"
+                                                                    }`}>
+                                                                        {cell.content.split("\n").map((line, lIdx) => (
+                                                                            <div key={lIdx} className="whitespace-pre">
+                                                                                {renderColoredLine(line, isLight)}
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                /* Google Docs Embed Container */
+                                <div className="flex-1 relative overflow-hidden flex flex-col bg-white">
+                                    {embedUrl ? (
+                                        <div className="w-full h-full relative bg-white">
+                                            <iframe
+                                                src={embedUrl}
+                                                className="w-full h-full border-0 absolute inset-0 bg-white"
+                                                title={`${selectedLevel} Hafta ${selectedWeek} Ders Planı`}
+                                                allow="autoplay"
+                                                loading="lazy"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className={`flex-1 flex flex-col items-center justify-center p-6 text-center ${
+                                            isLight ? "bg-slate-50 text-slate-500" : "bg-slate-950 text-slate-400"
+                                        }`}>
+                                            <div className={`w-12 h-12 rounded-2xl border flex items-center justify-center mb-3 ${
+                                                isLight ? "bg-white border-slate-200 text-slate-400" : "bg-slate-900 border-slate-800 text-slate-500"
+                                            }`}>
+                                                <FileText className="w-6 h-6" />
+                                            </div>
+                                            <h3 className={`text-sm font-semibold mb-1 ${isLight ? "text-slate-800" : "text-slate-200"}`}>
+                                                Bu Hafta İçin Google Docs Linki Tanımlanmamış
+                                            </h3>
+                                            <p className="text-xs max-w-sm mb-4 opacity-80">
+                                                {selectedLevel} Hafta {selectedWeek} için Google Docs plan linkinizi ekleyerek burada doğrudan önizleyebilirsiniz.
+                                            </p>
+                                            <Button
+                                                size="sm"
+                                                onClick={() => setIsEditingDocUrl(true)}
+                                                className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs h-8"
+                                            >
+                                                <Edit3 className="w-3.5 h-3.5 mr-1.5" />
+                                                Google Docs Linki Ekle
+                                            </Button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
                             {/* Left Footer Info */}
                             <div className={`border-t px-3 py-1.5 flex items-center justify-between text-[11px] shrink-0 ${
-                                isLight ? "bg-slate-50 border-slate-200 text-slate-500" : "bg-slate-900/60 border-slate-800/80 text-slate-500"
+                                selectedColab !== "none"
+                                    ? isLight ? "bg-amber-50/60 border-amber-200 text-amber-900 font-medium" : "bg-[#181825] border-slate-800 text-amber-300 font-medium"
+                                    : isLight ? "bg-slate-50 border-slate-200 text-slate-500" : "bg-slate-900/60 border-slate-800/80 text-slate-500"
                             }`}>
-                                <span>Google Docs Entegrasyonu</span>
-                                <span>{selectedLevel} • Hafta {selectedWeek}</span>
+                                <span>
+                                    {selectedColab !== "none" ? "Google Colab Entegrasyonu" : "Google Docs Entegrasyonu"}
+                                </span>
+                                <span>
+                                    {selectedColab === "all"
+                                        ? "Python Hafta 1-4 (Tümü)"
+                                        : selectedColab !== "none"
+                                        ? currentColabNotebook?.title
+                                        : `${selectedLevel} • Hafta ${selectedWeek}`}
+                                </span>
                             </div>
 
                         </div>
