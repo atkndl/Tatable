@@ -134,40 +134,45 @@ export function SummaryCards() {
         ? enteredGross - displayStats.salary 
         : (enteredNet !== undefined ? enteredNet - displayStats.salary : null);
 
+    // Derived inclusion flags: both default to included (DAHİL)
+    const isOthersIncluded = !separateTraining;
+    const isPlannedIncluded = includePlanned;
+
     // Compact Card Component for Toggles
     const CompactToggleCard = ({
-        active,
+        active, // true = DAHİL, false = AYRILDI
         onClick,
         title,
         icon: Icon,
         activeColorClass,
         activeTextClass,
         activeBorderClass,
+        badgeClass,
         subtitle
     }: any) => (
         <Card
             className={`cursor-pointer transition-all duration-200 shadow-2xs hover:shadow-xs flex flex-col justify-center px-3.5 py-2.5 h-full border ${
                 active 
-                    ? activeBorderClass + ' ' + activeColorClass 
-                    : 'bg-white border-slate-200 hover:bg-slate-50/80 text-slate-600'
+                    ? `${activeBorderClass} ${activeColorClass}` 
+                    : 'bg-white border-slate-200 hover:bg-slate-50/80 text-slate-500'
             }`}
             onClick={onClick}
         >
             <div className="flex flex-row items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <div className={`w-5 h-5 rounded flex items-center justify-center ${active ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-500'}`}>
+                    <div className={`w-5 h-5 rounded flex items-center justify-center ${active ? badgeClass : 'bg-slate-100 text-slate-400'}`}>
                         <Icon className="h-3 w-3" />
                     </div>
-                    <span className={`text-xs font-bold ${active ? activeTextClass : 'text-slate-700'}`}>
+                    <span className={`text-xs font-bold ${active ? activeTextClass : 'text-slate-600'}`}>
                         {title}
                     </span>
                 </div>
-                <div className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded ${
+                <div className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded transition-colors ${
                     active 
-                        ? 'bg-amber-200/60 text-amber-900 border border-amber-300' 
+                        ? `${badgeClass} font-extrabold` 
                         : 'bg-slate-100 text-slate-500 border border-slate-200'
                 }`}>
-                    {active ? "AYRILDI" : "DAHİL"}
+                    {active ? "DAHİL" : "AYRILDI"}
                 </div>
             </div>
             {subtitle && (
@@ -196,7 +201,7 @@ export function SummaryCards() {
                     </div>
                     <p className="text-[11px] font-semibold text-emerald-700 mt-1 flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
-                        <span className="truncate">{separateTraining ? "Eğitim / Tatil / Diğer Hariç" : "Tüm Mesailer Dahil"}</span>
+                        <span className="truncate">{isOthersIncluded ? "Tüm Mesailer Dahil" : "Eğitim / Tatil / Diğer Hariç"}</span>
                     </p>
                 </CardContent>
             </Card>
@@ -277,38 +282,48 @@ export function SummaryCards() {
                     </div>
                     <p className="text-[11px] font-semibold text-slate-600 mt-1 flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
-                        <span className="truncate">{separateTraining ? "Eğitim / Tatil / Diğer Hariç" : "Tüm Saatler Dahil"}</span>
+                        <span className="truncate">{isOthersIncluded ? "Tüm Saatler Dahil" : "Eğitim / Tatil / Diğer Hariç"}</span>
                     </p>
                 </CardContent>
             </Card>
 
             {/* 4. Toggles Column (Stacked) */}
             <div className="flex flex-col gap-2 min-h-[145px]">
-                {/* Diğerlerini Ayır (Eğitim, Resmi Tatil, Diğer) */}
+                {/* Diğerleri (Eğitim, Resmi Tatil, Diğer) - Default Dahil */}
                 <div className="flex-1">
                     <CompactToggleCard
-                        active={separateTraining}
+                        active={isOthersIncluded}
                         onClick={toggleSeparateTraining}
-                        title="Diğerlerini Ayır"
+                        title="Diğerleri"
                         icon={BookOpen}
                         activeColorClass="bg-amber-50"
                         activeBorderClass="border-amber-300"
                         activeTextClass="text-amber-800"
-                        subtitle={`-${trainingTotalLimit}s / -${formatCurrency(trainingSalaryLimit)} (Eğitim, Tatil, Diğer)`}
+                        badgeClass="bg-amber-100 text-amber-900 border border-amber-300"
+                        subtitle={
+                            isOthersIncluded
+                                ? `+${trainingTotalLimit}s / +${formatCurrency(trainingSalaryLimit)} (Eğitim, Tatil, Diğer)`
+                                : `-${trainingTotalLimit}s / -${formatCurrency(trainingSalaryLimit)} (Ayrıldı)`
+                        }
                     />
                 </div>
 
-                {/* Planlananları Dahil Et */}
+                {/* Planlananlar - Default Dahil */}
                 <div className="flex-1">
                     <CompactToggleCard
-                        active={includePlanned}
+                        active={isPlannedIncluded}
                         onClick={toggleIncludePlanned}
                         title="Planlananlar"
                         icon={Clock}
                         activeColorClass="bg-indigo-50"
                         activeBorderClass="border-indigo-300"
                         activeTextClass="text-indigo-800"
-                        subtitle={`+${plannedTotalAddon}s / +${formatCurrency(plannedSalaryAddon)}`}
+                        badgeClass="bg-indigo-100 text-indigo-900 border border-indigo-300"
+                        subtitle={
+                            isPlannedIncluded
+                                ? `+${plannedTotalAddon}s / +${formatCurrency(plannedSalaryAddon)}`
+                                : `Planlananlar dahil edilmedi`
+                        }
                     />
                 </div>
             </div>
