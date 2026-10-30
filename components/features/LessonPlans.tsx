@@ -722,27 +722,8 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                                 </span>
                             </div>
 
-                            {/* Right: Colab (Seviye 3) & Genişlet Butonu */}
+                            {/* Right: Genişlet Butonu */}
                             <div className="flex items-center gap-2 shrink-0">
-                                {selectedLevel === "Seviye 3" && (
-                                    <select
-                                        value={selectedColab}
-                                        onChange={(e) => setSelectedColab(e.target.value)}
-                                        className={`h-6 text-[11px] font-bold rounded px-1.5 outline-none cursor-pointer border ${
-                                            selectedColab !== "none"
-                                                ? "bg-amber-500 text-white border-amber-600"
-                                                : isLight ? "bg-amber-50 text-amber-950 border-amber-300" : "bg-amber-950/40 text-amber-200 border-amber-700/60"
-                                        }`}
-                                    >
-                                        <option value="none">Docs Planı</option>
-                                        <option value="hafta-1">Colab Hafta 1</option>
-                                        <option value="hafta-2">Colab Hafta 2</option>
-                                        <option value="hafta-3">Colab Hafta 3</option>
-                                        <option value="hafta-4">Colab Hafta 4</option>
-                                        <option value="all">Colab Tümü (1-4)</option>
-                                    </select>
-                                )}
-
                                 <button
                                     type="button"
                                     onClick={() => setIsNavCompact(false)}
@@ -837,34 +818,8 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                                     </div>
                                 </div>
 
-                                {/* Sağ: Colab Seçici & Daralt Butonu */}
+                                {/* Sağ: Daralt Butonu */}
                                 <div className="flex items-center gap-2 shrink-0 ml-auto">
-                                    {selectedLevel === "Seviye 3" && (
-                                        <div className="flex items-center gap-1.5">
-                                            <span className="text-[11px] font-extrabold text-amber-600 dark:text-amber-400 flex items-center gap-1 hidden md:inline-flex">
-                                                ⚡ Colab:
-                                            </span>
-                                            <select
-                                                value={selectedColab}
-                                                onChange={(e) => setSelectedColab(e.target.value)}
-                                                className={`h-7 text-xs font-bold rounded-md px-2 outline-none cursor-pointer border transition-colors ${
-                                                    selectedColab !== "none"
-                                                        ? "bg-amber-500 text-white border-amber-600"
-                                                        : isLight
-                                                        ? "bg-amber-50 text-amber-950 border-amber-300 hover:border-amber-400"
-                                                        : "bg-amber-950/40 text-amber-200 border-amber-700/60"
-                                                }`}
-                                            >
-                                                <option value="none">📄 Google Docs Planı</option>
-                                                <option value="hafta-1">Python Hafta 1</option>
-                                                <option value="hafta-2">Python Hafta 2</option>
-                                                <option value="hafta-3">Python Hafta 3</option>
-                                                <option value="hafta-4">Python Hafta 4</option>
-                                                <option value="all">Python Tümü (1-4)</option>
-                                            </select>
-                                        </div>
-                                    )}
-
                                     <button
                                         type="button"
                                         onClick={() => setIsNavCompact(true)}
@@ -978,8 +933,43 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                                     </div>
                                 </div>
 
-                                {/* Right Side: Primary Link Button + 3-Dots Dropdown */}
+                                {/* Right Side: Colab/Docs Selector + Primary Link Button + 3-Dots Dropdown */}
                                 <div className="flex items-center gap-1.5 shrink-0 relative">
+                                    {/* Seviye 3: Google Docs / Colab Seçim Dropdown */}
+                                    {selectedLevel === "Seviye 3" && (
+                                        <select
+                                            value={selectedColab}
+                                            onChange={(e) => setSelectedColab(e.target.value)}
+                                            className={`h-7 text-xs font-bold rounded-md px-2 outline-none cursor-pointer border transition-colors shadow-2xs ${
+                                                selectedColab !== "none"
+                                                    ? "bg-amber-500 text-white border-amber-600 hover:bg-amber-600"
+                                                    : isLight
+                                                    ? "bg-white text-slate-800 border-slate-300 hover:border-amber-400"
+                                                    : "bg-slate-900 text-slate-200 border-slate-700 hover:border-amber-400"
+                                            }`}
+                                            title="Görüntülenecek içeriği seçin (Google Docs veya Python Colab)"
+                                        >
+                                            <option value="none" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">
+                                                📄 Google Docs Planı
+                                            </option>
+                                            <option value="hafta-1" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">
+                                                Python Hafta 1
+                                            </option>
+                                            <option value="hafta-2" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">
+                                                Python Hafta 2
+                                            </option>
+                                            <option value="hafta-3" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">
+                                                Python Hafta 3
+                                            </option>
+                                            <option value="hafta-4" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">
+                                                Python Hafta 4
+                                            </option>
+                                            <option value="all" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">
+                                                Tümü (Hafta 1-4)
+                                            </option>
+                                        </select>
+                                    )}
+
                                     {selectedColab !== "none" ? (
                                         selectedColab !== "all" && currentColabNotebook?.url ? (
                                             <a
