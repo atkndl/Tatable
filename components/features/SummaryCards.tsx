@@ -53,10 +53,17 @@ export function SummaryCards() {
         });
 
         return monthlyShifts.reduce((acc, curr) => {
-            const isTraining = curr.branch === "Eğitim";
+            // Seviyesi veya Branşı "Eğitim", "Resmi Tatil" veya "Diğer" olan işler
+            const isOtherSpecial = 
+                curr.level === "Eğitim" || 
+                curr.level === "Resmi Tatil" || 
+                curr.level === "Diğer" ||
+                curr.branch === "Eğitim" || 
+                curr.branch === "Resmi Tatil" || 
+                curr.branch === "Diğer";
             const isPlanned = curr.status === 'planned';
 
-            if (isTraining) {
+            if (isOtherSpecial) {
                 if (isPlanned) {
                     acc.trainingPlannedHours += curr.hours;
                     acc.trainingPlannedSalary += curr.totalSalary;
@@ -139,20 +146,32 @@ export function SummaryCards() {
         subtitle
     }: any) => (
         <Card
-            className={`cursor-pointer transition-all duration-300 shadow-sm flex flex-col justify-center px-4 py-3 h-full border ${active ? activeBorderClass + ' ' + activeColorClass : 'bg-white border-slate-200 hover:bg-slate-50'}`}
+            className={`cursor-pointer transition-all duration-200 shadow-2xs hover:shadow-xs flex flex-col justify-center px-3.5 py-2.5 h-full border ${
+                active 
+                    ? activeBorderClass + ' ' + activeColorClass 
+                    : 'bg-white border-slate-200 hover:bg-slate-50/80 text-slate-600'
+            }`}
             onClick={onClick}
         >
             <div className="flex flex-row items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <Icon className={`h-4 w-4 ${active ? activeTextClass : 'text-slate-400'}`} />
-                    <span className={`text-xs font-semibold ${active ? activeTextClass : 'text-slate-500'}`}>{title}</span>
+                    <div className={`w-5 h-5 rounded flex items-center justify-center ${active ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-500'}`}>
+                        <Icon className="h-3 w-3" />
+                    </div>
+                    <span className={`text-xs font-bold ${active ? activeTextClass : 'text-slate-700'}`}>
+                        {title}
+                    </span>
                 </div>
-                <div className={`text-sm font-bold ${active ? activeTextClass : 'text-slate-300'}`}>
-                    {active ? "AÇIK" : "KAPALI"}
+                <div className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded ${
+                    active 
+                        ? 'bg-amber-200/60 text-amber-900 border border-amber-300' 
+                        : 'bg-slate-100 text-slate-500 border border-slate-200'
+                }`}>
+                    {active ? "AYRILDI" : "DAHİL"}
                 </div>
             </div>
-            {active && subtitle && (
-                <div className={`text-[10px] font-medium mt-1 ${activeTextClass} opacity-80`}>
+            {subtitle && (
+                <div className={`text-[10px] font-semibold mt-1 truncate ${active ? activeTextClass : 'text-slate-400'}`}>
                     {subtitle}
                 </div>
             )}
@@ -160,66 +179,81 @@ export function SummaryCards() {
     );
 
     return (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3.5 md:grid-cols-2 lg:grid-cols-4">
             {/* 1. Calculated Salary */}
-            <Card className="bg-emerald-50 border-emerald-200 shadow-sm transition-all duration-300 hover:shadow-md min-h-[140px] flex flex-col justify-between">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0">
-                    <CardTitle className="text-sm font-bold text-emerald-800">
-                        Hesaplanan
+            <Card className="bg-white border-slate-200/90 shadow-xs hover:shadow-md transition-all min-h-[145px] flex flex-col justify-between">
+                <CardHeader className="flex flex-row items-center justify-between pb-1 pt-3.5 px-4">
+                    <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Hesaplanan Maaş
                     </CardTitle>
-                    <Wallet className="h-4 w-4 text-emerald-700" />
+                    <div className="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
+                        <Wallet className="h-4 w-4" />
+                    </div>
                 </CardHeader>
-                <CardContent className="pb-4">
-                    <div className="text-2xl font-extrabold text-emerald-900 tracking-tight">
+                <CardContent className="px-4 pb-3.5 pt-0">
+                    <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
                         {formatCurrency(displayStats.salary)}
                     </div>
-                    <p className="text-xs text-emerald-700/80 font-medium mt-1">{separateTraining ? "Eğitim Hariç" : "Tümü"}</p>
+                    <p className="text-[11px] font-semibold text-emerald-700 mt-1 flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                        <span className="truncate">{separateTraining ? "Eğitim / Tatil / Diğer Hariç" : "Tüm Mesailer Dahil"}</span>
+                    </p>
                 </CardContent>
             </Card>
 
             {/* 2. Actual Salary (Yatan Brüt & Yatan Net) */}
-            <Card className="bg-white border-emerald-100 shadow-sm min-h-[140px] flex flex-col justify-between">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-3 px-4">
-                    <CardTitle className="text-xs font-bold text-emerald-700 uppercase tracking-wider">
+            <Card className="bg-white border-slate-200/90 shadow-xs hover:shadow-md transition-all min-h-[145px] flex flex-col justify-between">
+                <CardHeader className="flex flex-row items-center justify-between pb-1 pt-3.5 px-4">
+                    <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-500">
                         Yatan Maaş
                     </CardTitle>
-                    <PiggyBank className="h-4 w-4 text-emerald-600" />
+                    <div className="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600">
+                        <PiggyBank className="h-4 w-4" />
+                    </div>
                 </CardHeader>
-                <CardContent className="px-4 pb-3 pt-0 space-y-1.5">
+                <CardContent className="px-4 pb-3.5 pt-0 space-y-2">
                     <div className="grid grid-cols-2 gap-2">
                         <div>
-                            <label className="text-[10px] font-medium text-slate-500 block mb-0.5">Yatan Brüt</label>
+                            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-700 block mb-1">
+                                Yatan Brüt
+                            </label>
                             <div className="relative">
-                                <span className="absolute left-2 top-1 text-slate-400 text-xs font-bold">₺</span>
+                                <span className="absolute left-2.5 top-1.5 text-slate-500 text-xs font-bold">₺</span>
                                 <Input
                                     type="number"
                                     value={grossInput}
                                     onChange={(e) => handleGrossChange(e.target.value)}
-                                    className="h-7 pl-5 text-xs bg-slate-50 border-slate-200 text-slate-900 font-semibold focus:bg-white"
+                                    className="h-8 pl-6 text-xs font-bold bg-slate-50 border-slate-300 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-md"
                                     placeholder="0.00"
                                 />
                             </div>
                         </div>
                         <div>
-                            <label className="text-[10px] font-medium text-emerald-700 block mb-0.5">Yatan Net</label>
+                            <label className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 block mb-1">
+                                Yatan Net
+                            </label>
                             <div className="relative">
-                                <span className="absolute left-2 top-1 text-emerald-500 text-xs font-bold">₺</span>
+                                <span className="absolute left-2.5 top-1.5 text-emerald-600 text-xs font-bold">₺</span>
                                 <Input
                                     type="number"
                                     value={netInput}
                                     onChange={(e) => handleNetChange(e.target.value)}
-                                    className="h-7 pl-5 text-xs bg-emerald-50/70 border-emerald-200 text-emerald-900 font-bold focus:bg-white"
+                                    className="h-8 pl-6 text-xs font-bold bg-emerald-50/70 border-emerald-300 text-emerald-950 placeholder:text-emerald-400 focus:bg-white focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500 rounded-md"
                                     placeholder="0.00"
                                 />
                             </div>
                         </div>
                     </div>
                     <div className="flex items-center justify-between text-[11px] pt-0.5">
-                        <span className="text-slate-400 text-[10px] truncate max-w-[120px]">
+                        <span className="text-slate-500 text-[10px] font-medium truncate max-w-[120px]">
                             {enteredGross ? `Brüt: ${formatCurrency(enteredGross)}` : (enteredNet ? `Net: ${formatCurrency(enteredNet)}` : 'Ay sonu maaşı')}
                         </span>
                         {diffGross !== null ? (
-                            <span className={`font-semibold text-[10px] ${diffGross >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                            <span className={`font-bold text-[10px] px-1.5 py-0.5 rounded ${
+                                diffGross >= 0 
+                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                                    : 'bg-rose-50 text-rose-700 border border-rose-200'
+                            }`}>
                                 Fark: {diffGross > 0 ? '+' : ''}{formatCurrency(diffGross)}
                             </span>
                         ) : null}
@@ -228,38 +262,43 @@ export function SummaryCards() {
             </Card>
 
             {/* 3. Total Hours */}
-            <Card className="bg-white border-slate-200 shadow-sm min-h-[140px] flex flex-col justify-between">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0">
-                    <CardTitle className="text-sm font-medium text-slate-500">
+            <Card className="bg-white border-slate-200/90 shadow-xs hover:shadow-md transition-all min-h-[145px] flex flex-col justify-between">
+                <CardHeader className="flex flex-row items-center justify-between pb-1 pt-3.5 px-4">
+                    <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-500">
                         Toplam Saat
                     </CardTitle>
-                    <Clock className="h-4 w-4 text-slate-400" />
-                </CardHeader>
-                <CardContent className="pb-4">
-                    <div className="text-2xl font-bold text-slate-900">
-                        {displayStats.hours} Saat
+                    <div className="w-7 h-7 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600">
+                        <Clock className="h-4 w-4" />
                     </div>
-                    <p className="text-xs text-slate-500 font-medium mt-1">{separateTraining ? "Eğitim Hariç" : "Tümü"}</p>
+                </CardHeader>
+                <CardContent className="px-4 pb-3.5 pt-0">
+                    <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                        {displayStats.hours} <span className="text-base font-bold text-slate-500">Saat</span>
+                    </div>
+                    <p className="text-[11px] font-semibold text-slate-600 mt-1 flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
+                        <span className="truncate">{separateTraining ? "Eğitim / Tatil / Diğer Hariç" : "Tüm Saatler Dahil"}</span>
+                    </p>
                 </CardContent>
             </Card>
 
             {/* 4. Toggles Column (Stacked) */}
-            <div className="flex flex-col gap-2 min-h-[140px]">
-                {/* Training Toggle */}
+            <div className="flex flex-col gap-2 min-h-[145px]">
+                {/* Diğerlerini Ayır (Eğitim, Resmi Tatil, Diğer) */}
                 <div className="flex-1">
                     <CompactToggleCard
                         active={separateTraining}
                         onClick={toggleSeparateTraining}
-                        title="Eğitimleri Ayır"
+                        title="Diğerlerini Ayır"
                         icon={BookOpen}
                         activeColorClass="bg-amber-50"
-                        activeBorderClass="border-amber-200"
-                        activeTextClass="text-amber-700"
-                        subtitle={`-${trainingTotalLimit}s / -${formatCurrency(trainingSalaryLimit)}`}
+                        activeBorderClass="border-amber-300"
+                        activeTextClass="text-amber-800"
+                        subtitle={`-${trainingTotalLimit}s / -${formatCurrency(trainingSalaryLimit)} (Eğitim, Tatil, Diğer)`}
                     />
                 </div>
 
-                {/* Planned Toggle */}
+                {/* Planlananları Dahil Et */}
                 <div className="flex-1">
                     <CompactToggleCard
                         active={includePlanned}
@@ -267,8 +306,8 @@ export function SummaryCards() {
                         title="Planlananlar"
                         icon={Clock}
                         activeColorClass="bg-indigo-50"
-                        activeBorderClass="border-indigo-200"
-                        activeTextClass="text-indigo-700"
+                        activeBorderClass="border-indigo-300"
+                        activeTextClass="text-indigo-800"
                         subtitle={`+${plannedTotalAddon}s / +${formatCurrency(plannedSalaryAddon)}`}
                     />
                 </div>
