@@ -31,7 +31,9 @@ import {
     Gamepad2,
     FileQuestion,
     MoreVertical,
-    Columns
+    Columns,
+    ChevronUp,
+    ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -151,6 +153,9 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
 
     // Fullscreen expansion modes (none, left, right)
     const [expandMode, setExpandMode] = useState<"none" | "left" | "right">("none");
+
+    // Compact navigation toggle (for saving vertical space and expanding code/docs area)
+    const [isNavCompact, setIsNavCompact] = useState(false);
 
     // 3-dots dropdown menu states for Left & Right panels
     const [leftMenuOpen, setLeftMenuOpen] = useState(false);
@@ -646,139 +651,274 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                 </div>
             </header>
 
-            {/* Hierarchical Navigation Centerpiece (Seviye -> Hafta -> Başlık & Colab) */}
-            <div className={`border-b px-4 py-3 shrink-0 transition-colors ${
+            {/* Streamlined & Responsive Navigation Bar (Seviye, Hafta, Başlık & Özet) */}
+            <div className={`border-b px-3 sm:px-4 shrink-0 transition-all duration-200 ${
                 isLight ? "bg-white/80 border-slate-200" : "bg-slate-950/60 border-slate-800/80"
-            }`}>
-                <div className="max-w-[1920px] mx-auto flex flex-col items-center justify-center text-center gap-2.5">
+            } ${isNavCompact ? "py-1.5" : "py-2.5"}`}>
+                <div className="max-w-[1920px] mx-auto">
                     
-                    {/* ADIM 1: Seviye Seçimi (Büyük, belirgin, ortalanmış) */}
-                    <div className="flex items-center justify-center gap-2">
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mr-0.5">
-                            Seviye:
-                        </span>
-                        <div className={`inline-flex items-center p-1 rounded-xl border transition-colors shadow-xs ${
-                            isLight ? "bg-slate-100 border-slate-200" : "bg-slate-900 border-slate-800"
-                        }`}>
-                            {levels.map((lvl) => {
-                                const isSelected = selectedLevel === lvl;
-                                return (
-                                    <button
-                                        key={lvl}
-                                        type="button"
-                                        onClick={() => setSelectedLevel(lvl)}
-                                        className={`
-                                            px-4 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1.5
-                                            ${isSelected
-                                                ? lvl === "Seviye 1" 
-                                                    ? "bg-emerald-600 text-white shadow-sm"
-                                                    : lvl === "Seviye 2"
-                                                    ? "bg-blue-600 text-white shadow-sm"
-                                                    : "bg-indigo-600 text-white shadow-sm"
-                                                : isLight 
-                                                    ? "text-slate-600 hover:text-slate-900 hover:bg-white" 
-                                                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
-                                            }
-                                        `}
-                                    >
-                                        {lvl === "Seviye 1" && <Layers className="w-3.5 h-3.5" />}
-                                        {lvl === "Seviye 2" && <GraduationCap className="w-3.5 h-3.5" />}
-                                        {lvl === "Seviye 3" && <Code2 className="w-3.5 h-3.5" />}
-                                        <span>{lvl}</span>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
+                    {/* MOD 1: KOMPAKT (TEK SATIR) GÖRÜNÜM */}
+                    {isNavCompact ? (
+                        <div className="flex items-center justify-between gap-2.5 flex-wrap">
+                            {/* Left: Compact Seviye & Hafta */}
+                            <div className="flex items-center gap-2 min-w-0 flex-wrap flex-1">
+                                {/* Seviye Butonları */}
+                                <div className={`inline-flex items-center p-0.5 rounded-lg border shadow-2xs shrink-0 ${
+                                    isLight ? "bg-slate-100 border-slate-200" : "bg-slate-900 border-slate-800"
+                                }`}>
+                                    {levels.map((lvl) => {
+                                        const isSelected = selectedLevel === lvl;
+                                        return (
+                                            <button
+                                                key={lvl}
+                                                type="button"
+                                                onClick={() => setSelectedLevel(lvl)}
+                                                className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all ${
+                                                    isSelected
+                                                        ? lvl === "Seviye 1"
+                                                            ? "bg-emerald-600 text-white shadow-2xs"
+                                                            : lvl === "Seviye 2"
+                                                            ? "bg-blue-600 text-white shadow-2xs"
+                                                            : "bg-indigo-600 text-white shadow-2xs"
+                                                        : isLight ? "text-slate-600 hover:text-slate-900" : "text-slate-400 hover:text-white"
+                                                }`}
+                                            >
+                                                {lvl}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
 
-                    {/* ADIM 2: Hafta Seçimi (Seviye seçiminin hemen altında, bir grup gibi ortalanmış) */}
-                    <div className="flex items-center justify-center gap-1.5 flex-wrap">
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mr-0.5">
-                            Hafta:
-                        </span>
-                        <div className={`inline-flex items-center p-1 rounded-xl border flex-wrap justify-center gap-1 ${
-                            isLight ? "bg-slate-100/80 border-slate-200" : "bg-slate-900/60 border-slate-800"
-                        }`}>
-                            {(INITIAL_CURRICULUM[selectedLevel] || []).map((item) => {
-                                const isWeekSelected = selectedWeek === item.week;
-                                const key = `${selectedLevel}-W${item.week}`;
-                                const hasCustom = Boolean(customPlans[key]?.hasRealData || customDocUrls[key] || item.hasRealData);
-                                return (
-                                    <button
-                                        key={item.week}
-                                        type="button"
-                                        onClick={() => setSelectedWeek(item.week)}
-                                        className={`
-                                            px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5
-                                            ${isWeekSelected
-                                                ? isLight 
-                                                    ? "bg-indigo-600 text-white shadow-xs font-bold" 
-                                                    : "bg-indigo-500/30 text-indigo-200 border border-indigo-400/50 font-bold"
-                                                : isLight 
-                                                    ? "text-slate-600 hover:bg-white hover:text-slate-900" 
-                                                    : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
-                                            }
-                                        `}
-                                    >
-                                        <span>Hafta {item.week}</span>
-                                        {hasCustom && (
-                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" title="İçerik hazır" />
-                                        )}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
+                                <div className={`hidden sm:block h-4 w-px ${isLight ? "bg-slate-300" : "bg-slate-700"}`} />
 
-                    {/* Bilgi Şeridi: Seçili Ders Başlığı & Varsa Seviye 3 Colab Seçici */}
-                    <div className="flex items-center justify-center gap-2 text-xs flex-wrap mt-0.5">
-                        <span className={`px-2 py-0.5 rounded text-[11px] font-extrabold uppercase tracking-wider shrink-0 ${
-                            isLight 
-                                ? "bg-indigo-100 text-indigo-950 border border-indigo-300" 
-                                : "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
-                        }`}>
-                            {selectedLevel} • Hafta {currentWeekPlan.week}
-                        </span>
+                                {/* Hafta Butonları (Kompakt H1-H8) */}
+                                <div className={`inline-flex items-center p-0.5 rounded-lg border gap-0.5 shrink-0 ${
+                                    isLight ? "bg-slate-100/90 border-slate-200" : "bg-slate-900/80 border-slate-800"
+                                }`}>
+                                    {(INITIAL_CURRICULUM[selectedLevel] || []).map((item) => {
+                                        const isWeekSelected = selectedWeek === item.week;
+                                        return (
+                                            <button
+                                                key={item.week}
+                                                type="button"
+                                                onClick={() => setSelectedWeek(item.week)}
+                                                className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all ${
+                                                    isWeekSelected
+                                                        ? "bg-indigo-600 text-white shadow-2xs"
+                                                        : isLight ? "text-slate-600 hover:bg-white" : "text-slate-400 hover:bg-slate-800"
+                                                }`}
+                                            >
+                                                H{item.week}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
 
-                        <h2 className={`font-bold truncate max-w-md ${isLight ? "text-slate-900" : "text-slate-100"}`}>
-                            {currentWeekPlan.title}
-                        </h2>
-
-                        {currentWeekPlan.category && (
-                            <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full hidden sm:inline-block ${
-                                isLight ? "bg-slate-200 text-slate-800 border border-slate-300" : "bg-slate-800 text-slate-300"
-                            }`}>
-                                {currentWeekPlan.category}
-                            </span>
-                        )}
-
-                        {/* Seviye 3 için Colab Seçici (Zarif, odaklı) */}
-                        {selectedLevel === "Seviye 3" && (
-                            <div className="flex items-center gap-1.5 sm:ml-2 sm:pl-2 sm:border-l border-slate-300 dark:border-slate-700">
-                                <span className="text-[11px] font-extrabold text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                                    ⚡ Colab:
+                                {/* Başlık Özeti */}
+                                <span className={`text-xs font-bold truncate max-w-md hidden md:inline-block ${
+                                    isLight ? "text-slate-800" : "text-slate-200"
+                                }`}>
+                                    • {currentWeekPlan.title}
                                 </span>
-                                <select
-                                    value={selectedColab}
-                                    onChange={(e) => setSelectedColab(e.target.value)}
-                                    className={`h-6 text-xs font-bold rounded-md px-2 outline-none cursor-pointer border transition-colors ${
-                                        selectedColab !== "none"
-                                            ? "bg-amber-500 text-white border-amber-600"
-                                            : isLight
-                                            ? "bg-amber-50 text-amber-950 border-amber-300 hover:border-amber-400"
-                                            : "bg-amber-950/40 text-amber-200 border-amber-700/60"
-                                    }`}
-                                >
-                                    <option value="none">📄 Google Docs Planı</option>
-                                    <option value="hafta-1">Python Hafta 1</option>
-                                    <option value="hafta-2">Python Hafta 2</option>
-                                    <option value="hafta-3">Python Hafta 3</option>
-                                    <option value="hafta-4">Python Hafta 4</option>
-                                    <option value="all">Python Tümü (1-4)</option>
-                                </select>
                             </div>
-                        )}
-                    </div>
+
+                            {/* Right: Colab (Seviye 3) & Genişlet Butonu */}
+                            <div className="flex items-center gap-2 shrink-0">
+                                {selectedLevel === "Seviye 3" && (
+                                    <select
+                                        value={selectedColab}
+                                        onChange={(e) => setSelectedColab(e.target.value)}
+                                        className={`h-6 text-[11px] font-bold rounded px-1.5 outline-none cursor-pointer border ${
+                                            selectedColab !== "none"
+                                                ? "bg-amber-500 text-white border-amber-600"
+                                                : isLight ? "bg-amber-50 text-amber-950 border-amber-300" : "bg-amber-950/40 text-amber-200 border-amber-700/60"
+                                        }`}
+                                    >
+                                        <option value="none">Docs Planı</option>
+                                        <option value="hafta-1">Colab Hafta 1</option>
+                                        <option value="hafta-2">Colab Hafta 2</option>
+                                        <option value="hafta-3">Colab Hafta 3</option>
+                                        <option value="hafta-4">Colab Hafta 4</option>
+                                        <option value="all">Colab Tümü (1-4)</option>
+                                    </select>
+                                )}
+
+                                <button
+                                    type="button"
+                                    onClick={() => setIsNavCompact(false)}
+                                    className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-md border transition-colors ${
+                                        isLight 
+                                            ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300" 
+                                            : "bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-700"
+                                    }`}
+                                    title="Detaylı gezinme ve haftalık özeti görmek için genişlet"
+                                >
+                                    <ChevronDown className="w-3.5 h-3.5" />
+                                    <span className="hidden sm:inline">Genişlet</span>
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        /* MOD 2: GENİŞLETİLMİŞ VE YATAYDA DENGELİ GÖRÜNÜM */
+                        <div className="space-y-2">
+                            {/* Satır 1: Seviye Seçimi, Hafta Seçimi ve Aksiyonlar (Tüm genişliğe yayılır) */}
+                            <div className="flex items-center justify-between gap-3 flex-wrap">
+                                
+                                {/* Sol: Seviye + Hafta Seçimleri */}
+                                <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                                    {/* Seviye Seçimi */}
+                                    <div className={`inline-flex items-center p-0.5 rounded-lg border shadow-2xs ${
+                                        isLight ? "bg-slate-100 border-slate-200" : "bg-slate-900 border-slate-800"
+                                    }`}>
+                                        {levels.map((lvl) => {
+                                            const isSelected = selectedLevel === lvl;
+                                            return (
+                                                <button
+                                                    key={lvl}
+                                                    type="button"
+                                                    onClick={() => setSelectedLevel(lvl)}
+                                                    className={`
+                                                        px-3 py-1 rounded-md text-xs font-bold transition-all flex items-center gap-1.5
+                                                        ${isSelected
+                                                            ? lvl === "Seviye 1" 
+                                                                ? "bg-emerald-600 text-white shadow-2xs"
+                                                                : lvl === "Seviye 2"
+                                                                ? "bg-blue-600 text-white shadow-2xs"
+                                                                : "bg-indigo-600 text-white shadow-2xs"
+                                                            : isLight 
+                                                                ? "text-slate-600 hover:text-slate-900 hover:bg-white" 
+                                                                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
+                                                        }
+                                                    `}
+                                                >
+                                                    {lvl === "Seviye 1" && <Layers className="w-3 h-3" />}
+                                                    {lvl === "Seviye 2" && <GraduationCap className="w-3 h-3" />}
+                                                    {lvl === "Seviye 3" && <Code2 className="w-3 h-3" />}
+                                                    <span>{lvl}</span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+
+                                    <div className={`hidden sm:block h-5 w-px ${isLight ? "bg-slate-200" : "bg-slate-800"}`} />
+
+                                    {/* Hafta Seçimi */}
+                                    <div className={`inline-flex items-center p-0.5 rounded-lg border flex-wrap gap-0.5 ${
+                                        isLight ? "bg-slate-100/90 border-slate-200" : "bg-slate-900/80 border-slate-800"
+                                    }`}>
+                                        {(INITIAL_CURRICULUM[selectedLevel] || []).map((item) => {
+                                            const isWeekSelected = selectedWeek === item.week;
+                                            const key = `${selectedLevel}-W${item.week}`;
+                                            const hasCustom = Boolean(customPlans[key]?.hasRealData || customDocUrls[key] || item.hasRealData);
+                                            return (
+                                                <button
+                                                    key={item.week}
+                                                    type="button"
+                                                    onClick={() => setSelectedWeek(item.week)}
+                                                    className={`
+                                                        px-2.5 py-1 rounded-md text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5
+                                                        ${isWeekSelected
+                                                            ? isLight 
+                                                                ? "bg-indigo-600 text-white shadow-2xs font-bold" 
+                                                                : "bg-indigo-500/30 text-indigo-200 border border-indigo-400/50 font-bold"
+                                                            : isLight 
+                                                                ? "text-slate-600 hover:bg-white hover:text-slate-900" 
+                                                                : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                                                        }
+                                                    `}
+                                                >
+                                                    <span>Hafta {item.week}</span>
+                                                    {hasCustom && (
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" title="İçerik hazır" />
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                {/* Sağ: Colab Seçici & Daralt Butonu */}
+                                <div className="flex items-center gap-2 shrink-0 ml-auto">
+                                    {selectedLevel === "Seviye 3" && (
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="text-[11px] font-extrabold text-amber-600 dark:text-amber-400 flex items-center gap-1 hidden md:inline-flex">
+                                                ⚡ Colab:
+                                            </span>
+                                            <select
+                                                value={selectedColab}
+                                                onChange={(e) => setSelectedColab(e.target.value)}
+                                                className={`h-7 text-xs font-bold rounded-md px-2 outline-none cursor-pointer border transition-colors ${
+                                                    selectedColab !== "none"
+                                                        ? "bg-amber-500 text-white border-amber-600"
+                                                        : isLight
+                                                        ? "bg-amber-50 text-amber-950 border-amber-300 hover:border-amber-400"
+                                                        : "bg-amber-950/40 text-amber-200 border-amber-700/60"
+                                                }`}
+                                            >
+                                                <option value="none">📄 Google Docs Planı</option>
+                                                <option value="hafta-1">Python Hafta 1</option>
+                                                <option value="hafta-2">Python Hafta 2</option>
+                                                <option value="hafta-3">Python Hafta 3</option>
+                                                <option value="hafta-4">Python Hafta 4</option>
+                                                <option value="all">Python Tümü (1-4)</option>
+                                            </select>
+                                        </div>
+                                    )}
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsNavCompact(true)}
+                                        className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-md border transition-colors ${
+                                            isLight 
+                                                ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300" 
+                                                : "bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-700"
+                                        }`}
+                                        title="Daha fazla çalışma alanı için gezinme çubuğunu daralt"
+                                    >
+                                        <ChevronUp className="w-3.5 h-3.5" />
+                                        <span className="hidden sm:inline">Alanı Daralt</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Satır 2: Aktif Hafta Detayları & Sağ Boşluğu Dolduran Haftalık Hedef/Özet */}
+                            <div className={`pt-2 border-t flex items-center justify-between gap-3 text-xs flex-wrap ${
+                                isLight ? "border-slate-200/80" : "border-slate-800/80"
+                            }`}>
+                                <div className="flex items-center gap-2 min-w-0 flex-1">
+                                    <span className={`px-2 py-0.5 rounded text-[11px] font-extrabold uppercase tracking-wider shrink-0 ${
+                                        isLight 
+                                            ? "bg-indigo-100 text-indigo-950 border border-indigo-200" 
+                                            : "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
+                                    }`}>
+                                        {selectedLevel} • Hafta {currentWeekPlan.week}
+                                    </span>
+
+                                    <h2 className={`font-bold truncate text-xs sm:text-sm ${isLight ? "text-slate-900" : "text-slate-100"}`}>
+                                        {currentWeekPlan.title}
+                                    </h2>
+
+                                    {currentWeekPlan.category && (
+                                        <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full shrink-0 hidden md:inline-block ${
+                                            isLight ? "bg-slate-200 text-slate-700" : "bg-slate-800 text-slate-300"
+                                        }`}>
+                                            {currentWeekPlan.category}
+                                        </span>
+                                    )}
+                                </div>
+
+                                {/* Sağ Boşluğu Dolduran Haftalık Kazanım / Hedef */}
+                                {currentWeekPlan.summary && (
+                                    <div className={`hidden lg:flex items-center gap-1.5 text-[11px] max-w-xl text-right truncate ${
+                                        isLight ? "text-slate-500" : "text-slate-400"
+                                    }`}>
+                                        <span className="font-semibold text-slate-400 dark:text-slate-500 shrink-0">🎯 Hedef:</span>
+                                        <span className="truncate italic">{currentWeekPlan.summary}</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
 
                 </div>
             </div>
@@ -786,7 +926,7 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
             {/* Main Content Area: Split Screen (Left: Google Docs, Right: Code/AI/Editor) */}
             <main className="flex-1 p-2 md:p-3 overflow-hidden">
                 <div className={`
-                    h-[calc(100vh-215px)] min-h-[500px]
+                    ${isNavCompact ? "h-[calc(100vh-130px)]" : "h-[calc(100vh-175px)]"} min-h-[500px]
                     grid gap-3 transition-all duration-200
                     ${expandMode === "left" 
                         ? "grid-cols-1" 
