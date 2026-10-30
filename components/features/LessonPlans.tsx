@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { 
     BookOpen, 
     ArrowLeft, 
@@ -29,7 +29,9 @@ import {
     Info,
     Cpu,
     Gamepad2,
-    FileQuestion
+    FileQuestion,
+    MoreVertical,
+    Columns
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -149,6 +151,25 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
 
     // Fullscreen expansion modes (none, left, right)
     const [expandMode, setExpandMode] = useState<"none" | "left" | "right">("none");
+
+    // 3-dots dropdown menu states for Left & Right panels
+    const [leftMenuOpen, setLeftMenuOpen] = useState(false);
+    const [rightMenuOpen, setRightMenuOpen] = useState(false);
+
+    // Close 3-dots menus on outside click
+    useEffect(() => {
+        const handleOutsideClick = (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            if (!target.closest('[data-dropdown="left-menu"]')) {
+                setLeftMenuOpen(false);
+            }
+            if (!target.closest('[data-dropdown="right-menu"]')) {
+                setRightMenuOpen(false);
+            }
+        };
+        document.addEventListener("click", handleOutsideClick);
+        return () => document.removeEventListener("click", handleOutsideClick);
+    }, []);
 
     // Google Colab Dropdown state for Seviye 3: "none" | "hafta-1" | "hafta-2" | "hafta-3" | "hafta-4" | "all"
     const [selectedColab, setSelectedColab] = useState<string>("none");
@@ -500,12 +521,12 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
         }`}>
             
             {/* Top Navigation & Controls Bar */}
-            <header className={`border-b sticky top-0 z-40 px-4 py-3 shrink-0 backdrop-blur-md transition-colors ${
+            <header className={`border-b sticky top-0 z-40 px-4 py-2.5 shrink-0 backdrop-blur-md transition-colors ${
                 isLight 
                     ? "bg-white/95 border-slate-200 text-slate-900 shadow-xs" 
                     : "bg-slate-950/80 border-slate-800 text-white"
             }`}>
-                <div className="max-w-[1920px] mx-auto flex flex-wrap items-center justify-between gap-3">
+                <div className="max-w-[1920px] mx-auto flex items-center justify-between gap-3">
                     
                     {/* Left: Back & Title */}
                     <div className="flex items-center gap-3">
@@ -513,7 +534,7 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                             variant="ghost"
                             size="sm"
                             onClick={onBackToHub}
-                            className={`h-9 px-2.5 rounded-lg text-xs transition-colors ${
+                            className={`h-8 px-2.5 rounded-lg text-xs font-semibold transition-colors ${
                                 isLight 
                                     ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100" 
                                     : "text-slate-400 hover:text-white hover:bg-slate-800"
@@ -524,70 +545,70 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                         </Button>
                         <div className={`h-4 w-px ${isLight ? "bg-slate-200" : "bg-slate-800"}`} />
                         <div className="flex items-center gap-2">
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
                                 isLight ? "bg-indigo-50 border border-indigo-200 text-indigo-600" : "bg-indigo-600/20 border border-indigo-500/30 text-indigo-400"
                             }`}>
                                 <BookOpen className="w-4 h-4" />
                             </div>
-                            <div>
-                                <div className="flex items-center gap-2">
-                                    <h1 className="text-sm md:text-base font-bold tracking-tight">
-                                        Ders Planları & Çalışma Alanı
-                                    </h1>
-                                    <span className={`hidden md:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                                        isLight 
-                                            ? "bg-indigo-50 text-indigo-700 border border-indigo-200" 
-                                            : "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20"
-                                    }`}>
-                                        Sol: Plan • Sağ: İçerik & Kod
-                                    </span>
-                                </div>
-                            </div>
+                            <h1 className="text-sm md:text-base font-extrabold tracking-tight">
+                                Ders Planları
+                            </h1>
                         </div>
                     </div>
 
-                    {/* Center: Level Switcher (Strictly Seviye 1, 2, 3) */}
-                    <div className={`flex items-center p-1 rounded-xl border transition-colors ${
-                        isLight ? "bg-slate-100 border-slate-200" : "bg-slate-900 border-slate-800"
-                    }`}>
-                        {levels.map((lvl) => {
-                            const isSelected = selectedLevel === lvl;
-                            return (
-                                <button
-                                    key={lvl}
-                                    type="button"
-                                    onClick={() => setSelectedLevel(lvl)}
-                                    className={`
-                                        px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5
-                                        ${isSelected
-                                            ? lvl === "Seviye 1" 
-                                                ? "bg-emerald-600 text-white shadow-sm"
-                                                : lvl === "Seviye 2"
-                                                ? "bg-blue-600 text-white shadow-sm"
-                                                : "bg-indigo-600 text-white shadow-sm"
-                                            : isLight 
-                                                ? "text-slate-600 hover:text-slate-900 hover:bg-white" 
-                                                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
-                                        }
-                                    `}
-                                >
-                                    {lvl === "Seviye 1" && <Layers className="w-3.5 h-3.5" />}
-                                    {lvl === "Seviye 2" && <GraduationCap className="w-3.5 h-3.5" />}
-                                    {lvl === "Seviye 3" && <Code2 className="w-3.5 h-3.5" />}
-                                    <span>{lvl}</span>
-                                </button>
-                            );
-                        })}
-                    </div>
-
-                    {/* Right: Theme Toggle (Sun/Moon), Mesai Button */}
+                    {/* Right: Layout Switcher, Theme Toggle, Mesai Button */}
                     <div className="flex items-center gap-2">
+                        {/* Compact Split View Toggles */}
+                        <div className={`hidden sm:flex items-center p-0.5 rounded-lg border text-xs ${
+                            isLight ? "bg-slate-100 border-slate-200" : "bg-slate-900 border-slate-800"
+                        }`}>
+                            <button
+                                type="button"
+                                onClick={() => setExpandMode("none")}
+                                title="İki Paneli Gör"
+                                className={`px-2 py-1 rounded text-[11px] font-semibold transition-all flex items-center gap-1 ${
+                                    expandMode === "none"
+                                        ? "bg-indigo-600 text-white shadow-xs"
+                                        : isLight ? "text-slate-600 hover:text-slate-900" : "text-slate-400 hover:text-white"
+                                }`}
+                            >
+                                <Columns className="w-3.5 h-3.5" />
+                                <span className="hidden md:inline">İki Panel</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setExpandMode("left")}
+                                title="Yalnızca Plan (Sol)"
+                                className={`px-2 py-1 rounded text-[11px] font-semibold transition-all flex items-center gap-1 ${
+                                    expandMode === "left"
+                                        ? "bg-indigo-600 text-white shadow-xs"
+                                        : isLight ? "text-slate-600 hover:text-slate-900" : "text-slate-400 hover:text-white"
+                                }`}
+                            >
+                                <FileText className="w-3.5 h-3.5" />
+                                <span className="hidden md:inline">Yalnız Plan</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setExpandMode("right")}
+                                title="Yalnızca İçerik (Sağ)"
+                                className={`px-2 py-1 rounded text-[11px] font-semibold transition-all flex items-center gap-1 ${
+                                    expandMode === "right"
+                                        ? "bg-indigo-600 text-white shadow-xs"
+                                        : isLight ? "text-slate-600 hover:text-slate-900" : "text-slate-400 hover:text-white"
+                                }`}
+                            >
+                                <Code2 className="w-3.5 h-3.5" />
+                                <span className="hidden md:inline">Yalnız Kod</span>
+                            </button>
+                        </div>
+
                         {/* Theme Toggle Button with Sun/Moon */}
                         <Button
                             variant="outline"
                             size="sm"
                             onClick={toggleTheme}
-                            className={`h-9 px-2.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
+                            className={`h-8 px-2.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
                                 isLight 
                                     ? "bg-white border-slate-200 text-slate-700 hover:bg-slate-100 hover:text-slate-900" 
                                     : "bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800 hover:text-white"
@@ -596,13 +617,13 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                         >
                             {isLight ? (
                                 <>
-                                    <Moon className="w-4 h-4 text-indigo-600" />
-                                    <span>Koyu Mod</span>
+                                    <Moon className="w-3.5 h-3.5 text-indigo-600" />
+                                    <span className="hidden sm:inline">Koyu</span>
                                 </>
                             ) : (
                                 <>
-                                    <Sun className="w-4 h-4 text-amber-400" />
-                                    <span>Açık Mod</span>
+                                    <Sun className="w-3.5 h-3.5 text-amber-400" />
+                                    <span className="hidden sm:inline">Açık</span>
                                 </>
                             )}
                         </Button>
@@ -611,183 +632,161 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                             variant="outline"
                             size="sm"
                             onClick={onSwitchToMesai}
-                            className={`text-xs h-9 font-medium ${
+                            className={`text-xs h-8 font-semibold ${
                                 isLight 
                                     ? "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100" 
                                     : "bg-slate-900 border-slate-800 hover:bg-slate-800 text-emerald-400 hover:text-emerald-300"
                             }`}
                         >
-                            <Clock className="w-3.5 h-3.5 mr-1.5" />
+                            <Clock className="w-3.5 h-3.5 mr-1 text-emerald-500" />
                             Mesai Takip
                         </Button>
                     </div>
 
                 </div>
-
-                {/* Week Selector Bar (Hafta 1 ... Hafta 8) */}
-                <div className={`max-w-[1920px] mx-auto mt-2.5 pt-2.5 border-t flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin ${
-                    isLight ? "border-slate-200" : "border-slate-800/60"
-                }`}>
-                    <span className={`text-[11px] font-semibold uppercase tracking-wider mr-1 shrink-0 ${
-                        isLight ? "text-slate-500" : "text-slate-400"
-                    }`}>
-                        Haftalar:
-                    </span>
-                    {(INITIAL_CURRICULUM[selectedLevel] || []).map((item) => {
-                        const isWeekSelected = selectedWeek === item.week;
-                        const key = `${selectedLevel}-W${item.week}`;
-                        const hasCustom = Boolean(customPlans[key]?.hasRealData || customDocUrls[key] || item.hasRealData);
-                        return (
-                            <button
-                                key={item.week}
-                                type="button"
-                                onClick={() => setSelectedWeek(item.week)}
-                                className={`
-                                    px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0
-                                    ${isWeekSelected
-                                        ? isLight 
-                                            ? "bg-indigo-600 text-white shadow-xs font-bold" 
-                                            : "bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 font-bold"
-                                        : isLight 
-                                            ? "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 border border-slate-200" 
-                                            : "bg-slate-900/60 text-slate-400 hover:bg-slate-800 hover:text-slate-200 border border-slate-800/60"
-                                    }
-                                `}
-                            >
-                                <span>Hafta {item.week}</span>
-                                {hasCustom && (
-                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" title="Gerçek içerik / plan ekli" />
-                                )}
-                            </button>
-                        );
-                    })}
-                </div>
             </header>
 
-            {/* Sub-header: Current Week Title & Quick Info */}
-            <div className={`border-b px-4 py-2 shrink-0 transition-colors ${
-                isLight ? "bg-white/90 border-slate-200" : "bg-slate-950/40 border-slate-800/80"
+            {/* Hierarchical Navigation Centerpiece (Seviye -> Hafta -> Başlık & Colab) */}
+            <div className={`border-b px-4 py-3 shrink-0 transition-colors ${
+                isLight ? "bg-white/80 border-slate-200" : "bg-slate-950/60 border-slate-800/80"
             }`}>
-                <div className="max-w-[1920px] mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 overflow-hidden flex-wrap">
-                        <span className={`px-2.5 py-1 rounded text-[11px] font-extrabold uppercase tracking-wider shrink-0 ${
+                <div className="max-w-[1920px] mx-auto flex flex-col items-center justify-center text-center gap-2.5">
+                    
+                    {/* ADIM 1: Seviye Seçimi (Büyük, belirgin, ortalanmış) */}
+                    <div className="flex items-center justify-center gap-2">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mr-0.5">
+                            Seviye:
+                        </span>
+                        <div className={`inline-flex items-center p-1 rounded-xl border transition-colors shadow-xs ${
+                            isLight ? "bg-slate-100 border-slate-200" : "bg-slate-900 border-slate-800"
+                        }`}>
+                            {levels.map((lvl) => {
+                                const isSelected = selectedLevel === lvl;
+                                return (
+                                    <button
+                                        key={lvl}
+                                        type="button"
+                                        onClick={() => setSelectedLevel(lvl)}
+                                        className={`
+                                            px-4 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1.5
+                                            ${isSelected
+                                                ? lvl === "Seviye 1" 
+                                                    ? "bg-emerald-600 text-white shadow-sm"
+                                                    : lvl === "Seviye 2"
+                                                    ? "bg-blue-600 text-white shadow-sm"
+                                                    : "bg-indigo-600 text-white shadow-sm"
+                                                : isLight 
+                                                    ? "text-slate-600 hover:text-slate-900 hover:bg-white" 
+                                                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
+                                            }
+                                        `}
+                                    >
+                                        {lvl === "Seviye 1" && <Layers className="w-3.5 h-3.5" />}
+                                        {lvl === "Seviye 2" && <GraduationCap className="w-3.5 h-3.5" />}
+                                        {lvl === "Seviye 3" && <Code2 className="w-3.5 h-3.5" />}
+                                        <span>{lvl}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* ADIM 2: Hafta Seçimi (Seviye seçiminin hemen altında, bir grup gibi ortalanmış) */}
+                    <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mr-0.5">
+                            Hafta:
+                        </span>
+                        <div className={`inline-flex items-center p-1 rounded-xl border flex-wrap justify-center gap-1 ${
+                            isLight ? "bg-slate-100/80 border-slate-200" : "bg-slate-900/60 border-slate-800"
+                        }`}>
+                            {(INITIAL_CURRICULUM[selectedLevel] || []).map((item) => {
+                                const isWeekSelected = selectedWeek === item.week;
+                                const key = `${selectedLevel}-W${item.week}`;
+                                const hasCustom = Boolean(customPlans[key]?.hasRealData || customDocUrls[key] || item.hasRealData);
+                                return (
+                                    <button
+                                        key={item.week}
+                                        type="button"
+                                        onClick={() => setSelectedWeek(item.week)}
+                                        className={`
+                                            px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5
+                                            ${isWeekSelected
+                                                ? isLight 
+                                                    ? "bg-indigo-600 text-white shadow-xs font-bold" 
+                                                    : "bg-indigo-500/30 text-indigo-200 border border-indigo-400/50 font-bold"
+                                                : isLight 
+                                                    ? "text-slate-600 hover:bg-white hover:text-slate-900" 
+                                                    : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                                            }
+                                        `}
+                                    >
+                                        <span>Hafta {item.week}</span>
+                                        {hasCustom && (
+                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" title="İçerik hazır" />
+                                        )}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Bilgi Şeridi: Seçili Ders Başlığı & Varsa Seviye 3 Colab Seçici */}
+                    <div className="flex items-center justify-center gap-2 text-xs flex-wrap mt-0.5">
+                        <span className={`px-2 py-0.5 rounded text-[11px] font-extrabold uppercase tracking-wider shrink-0 ${
                             isLight 
                                 ? "bg-indigo-100 text-indigo-950 border border-indigo-300" 
                                 : "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
                         }`}>
                             {selectedLevel} • Hafta {currentWeekPlan.week}
                         </span>
-                        <h2 className={`text-xs md:text-sm font-bold truncate ${isLight ? "text-slate-950" : "text-slate-100"}`}>
+
+                        <h2 className={`font-bold truncate max-w-md ${isLight ? "text-slate-900" : "text-slate-100"}`}>
                             {currentWeekPlan.title}
                         </h2>
+
                         {currentWeekPlan.category && (
-                            <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full hidden sm:inline-block ${
-                                isLight ? "bg-slate-200 text-slate-900 border border-slate-300" : "bg-slate-800 text-slate-300"
+                            <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full hidden sm:inline-block ${
+                                isLight ? "bg-slate-200 text-slate-800 border border-slate-300" : "bg-slate-800 text-slate-300"
                             }`}>
                                 {currentWeekPlan.category}
                             </span>
                         )}
 
-                        {/* Seviye 3: Google Colab Dropdown in Sub-header */}
+                        {/* Seviye 3 için Colab Seçici (Zarif, odaklı) */}
                         {selectedLevel === "Seviye 3" && (
-                            <div className="flex items-center gap-1.5 sm:ml-2">
-                                <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border shadow-xs transition-colors ${
-                                    selectedColab !== "none"
-                                        ? "bg-amber-500 text-white border-amber-600 font-bold"
-                                        : isLight
-                                        ? "bg-amber-50/90 border-amber-300 text-amber-950"
-                                        : "bg-amber-950/30 border-amber-700/60 text-amber-300"
-                                }`}>
-                                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0" />
-                                    <span className="text-[11px] font-extrabold uppercase tracking-wider shrink-0">
-                                        Colab:
-                                    </span>
-                                    <select
-                                        value={selectedColab}
-                                        onChange={(e) => setSelectedColab(e.target.value)}
-                                        className={`h-6 text-xs font-bold rounded bg-transparent border-0 outline-none cursor-pointer ${
-                                            selectedColab !== "none"
-                                                ? "text-white font-extrabold"
-                                                : isLight
-                                                ? "text-slate-950"
-                                                : "text-amber-200"
-                                        }`}
-                                    >
-                                        <option value="none" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">
-                                            📄 Google Docs Planı
-                                        </option>
-                                        <option value="hafta-1" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">
-                                            Python Hafta 1
-                                        </option>
-                                        <option value="hafta-2" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">
-                                            Python Hafta 2
-                                        </option>
-                                        <option value="hafta-3" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">
-                                            Python Hafta 3
-                                        </option>
-                                        <option value="hafta-4" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">
-                                            Python Hafta 4
-                                        </option>
-                                        <option value="all" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">
-                                            Tümü
-                                        </option>
-                                    </select>
-                                </div>
+                            <div className="flex items-center gap-1.5 sm:ml-2 sm:pl-2 sm:border-l border-slate-300 dark:border-slate-700">
+                                <span className="text-[11px] font-extrabold text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                                    ⚡ Colab:
+                                </span>
+                                <select
+                                    value={selectedColab}
+                                    onChange={(e) => setSelectedColab(e.target.value)}
+                                    className={`h-6 text-xs font-bold rounded-md px-2 outline-none cursor-pointer border transition-colors ${
+                                        selectedColab !== "none"
+                                            ? "bg-amber-500 text-white border-amber-600"
+                                            : isLight
+                                            ? "bg-amber-50 text-amber-950 border-amber-300 hover:border-amber-400"
+                                            : "bg-amber-950/40 text-amber-200 border-amber-700/60"
+                                    }`}
+                                >
+                                    <option value="none">📄 Google Docs Planı</option>
+                                    <option value="hafta-1">Python Hafta 1</option>
+                                    <option value="hafta-2">Python Hafta 2</option>
+                                    <option value="hafta-3">Python Hafta 3</option>
+                                    <option value="hafta-4">Python Hafta 4</option>
+                                    <option value="all">Python Tümü (1-4)</option>
+                                </select>
                             </div>
                         )}
                     </div>
 
-                    {/* Split View Toggles */}
-                    <div className="flex items-center gap-1.5 self-end sm:self-auto shrink-0 text-xs">
-                        {expandMode !== "none" && (
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setExpandMode("none")}
-                                className={`h-7 px-2 text-[11px] ${
-                                    isLight ? "text-slate-700 bg-slate-200 hover:bg-slate-300" : "text-slate-300 bg-slate-800 hover:bg-slate-700"
-                                }`}
-                            >
-                                <Minimize2 className="w-3 h-3 mr-1" />
-                                İki Paneli Gör
-                            </Button>
-                        )}
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setExpandMode(expandMode === "left" ? "none" : "left")}
-                            className={`h-7 px-2 text-[11px] ${
-                                expandMode === "left" 
-                                    ? "bg-indigo-600 text-white" 
-                                    : isLight ? "text-slate-600 hover:bg-slate-200" : "text-slate-400 hover:bg-slate-800 hover:text-white"
-                            }`}
-                            title="Sol Paneli Büyüt (Google Docs)"
-                        >
-                            <FileText className="w-3 h-3 mr-1" />
-                            {expandMode === "left" ? "Küçült" : "Yalnızca Plan"}
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setExpandMode(expandMode === "right" ? "none" : "right")}
-                            className={`h-7 px-2 text-[11px] ${
-                                expandMode === "right" 
-                                    ? "bg-indigo-600 text-white" 
-                                    : isLight ? "text-slate-600 hover:bg-slate-200" : "text-slate-400 hover:bg-slate-800 hover:text-white"
-                            }`}
-                            title="Sağ Paneli Büyüt (İçerik & Kod)"
-                        >
-                            <Code2 className="w-3 h-3 mr-1" />
-                            {expandMode === "right" ? "Küçült" : "Yalnızca İçerik"}
-                        </Button>
-                    </div>
                 </div>
             </div>
 
             {/* Main Content Area: Split Screen (Left: Google Docs, Right: Code/AI/Editor) */}
             <main className="flex-1 p-2 md:p-3 overflow-hidden">
                 <div className={`
-                    h-[calc(100vh-165px)] min-h-[550px]
+                    h-[calc(100vh-215px)] min-h-[500px]
                     grid gap-3 transition-all duration-200
                     ${expandMode === "left" 
                         ? "grid-cols-1" 
@@ -806,7 +805,7 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                         }`}>
                             
                             {/* Left Header */}
-                            <div className={`border-b px-3 py-2 flex items-center justify-between gap-2 shrink-0 ${
+                            <div className={`border-b px-3 py-2 flex items-center justify-between gap-2 shrink-0 relative ${
                                 selectedColab !== "none"
                                     ? isLight ? "bg-amber-50/90 border-amber-200" : "bg-[#1f1b13] border-amber-900/50"
                                     : isLight ? "bg-slate-50 border-slate-200" : "bg-slate-900/90 border-slate-800"
@@ -837,48 +836,12 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                                             )}
                                         </div>
                                     </div>
-
-                                    {/* Seviye 3 Colab Dropdown right here in panel header */}
-                                    {selectedLevel === "Seviye 3" && (
-                                        <div className="ml-2 flex items-center gap-1">
-                                            <select
-                                                value={selectedColab}
-                                                onChange={(e) => setSelectedColab(e.target.value)}
-                                                className={`h-7 text-xs font-bold rounded-md border px-2 outline-none shadow-xs transition-colors cursor-pointer ${
-                                                    selectedColab !== "none"
-                                                        ? "bg-amber-500 text-white border-amber-600"
-                                                        : isLight 
-                                                        ? "bg-white text-slate-800 border-slate-300 hover:border-amber-400" 
-                                                        : "bg-slate-900 text-slate-200 border-slate-700 hover:border-amber-400"
-                                                }`}
-                                            >
-                                                <option value="none" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">
-                                                    📄 Google Docs Planı
-                                                </option>
-                                                <option value="hafta-1" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">
-                                                    Python Hafta 1
-                                                </option>
-                                                <option value="hafta-2" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">
-                                                    Python Hafta 2
-                                                </option>
-                                                <option value="hafta-3" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">
-                                                    Python Hafta 3
-                                                </option>
-                                                <option value="hafta-4" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">
-                                                    Python Hafta 4
-                                                </option>
-                                                <option value="all" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium">
-                                                    Tümü
-                                                </option>
-                                            </select>
-                                        </div>
-                                    )}
                                 </div>
 
-                                {/* Actions: Colab actions OR Docs actions */}
-                                {selectedColab !== "none" ? (
-                                    <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
-                                        {selectedColab !== "all" && currentColabNotebook?.url && (
+                                {/* Right Side: Primary Link Button + 3-Dots Dropdown */}
+                                <div className="flex items-center gap-1.5 shrink-0 relative">
+                                    {selectedColab !== "none" ? (
+                                        selectedColab !== "all" && currentColabNotebook?.url ? (
                                             <a
                                                 href={currentColabNotebook.url}
                                                 target="_blank"
@@ -889,53 +852,9 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                                                 <ExternalLink className="w-3 h-3" />
                                                 <span>Colab&apos;da Aç</span>
                                             </a>
-                                        )}
-                                        <button
-                                            type="button"
-                                            onClick={() => handleCopyColab(selectedColab === "all" ? allColabsMergedCode : (currentColabNotebook?.mergedCode || ""))}
-                                            className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded border transition-colors ${
-                                                isLight ? "bg-white text-slate-800 border-slate-300 hover:bg-slate-50" : "bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700"
-                                            }`}
-                                            title="Tüm Python kodunu kopyala"
-                                        >
-                                            {copiedColab ? (
-                                                <>
-                                                    <Check className="w-3 h-3 text-emerald-500" />
-                                                    <span className="text-emerald-500 font-bold">Kopyalandı</span>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Copy className="w-3 h-3 text-amber-500" />
-                                                    <span>Kodu Kopyala</span>
-                                                </>
-                                            )}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setColabViewMode(colabViewMode === "notebook" ? "code" : "notebook")}
-                                            className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded border transition-colors ${
-                                                isLight ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50" : "bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700"
-                                            }`}
-                                            title={colabViewMode === "notebook" ? "Ham Python kodunu görüntüle" : "Notebook kartlarını görüntüle"}
-                                        >
-                                            <FileCode className="w-3 h-3 text-indigo-500" />
-                                            <span>{colabViewMode === "notebook" ? "Ham Kod" : "Notebook"}</span>
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setSelectedColab("none")}
-                                            className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded border transition-colors ${
-                                                isLight ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50" : "bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700"
-                                            }`}
-                                            title="Google Docs ders planı belgesine geri dön"
-                                        >
-                                            <FileText className="w-3 h-3 text-blue-500" />
-                                            <span>Docs&apos;a Dön</span>
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center gap-1.5 shrink-0">
-                                        {effectiveDocUrl && (
+                                        ) : null
+                                    ) : (
+                                        effectiveDocUrl ? (
                                             <a
                                                 href={effectiveDocUrl}
                                                 target="_blank"
@@ -950,35 +869,115 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                                                 <ExternalLink className="w-3 h-3" />
                                                 <span>Sekmede Aç</span>
                                             </a>
+                                        ) : null
+                                    )}
+
+                                    {/* 3-Dots Menu Trigger */}
+                                    <div className="relative" data-dropdown="left-menu">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setLeftMenuOpen(!leftMenuOpen);
+                                                setRightMenuOpen(false);
+                                            }}
+                                            className={`w-7 h-7 flex items-center justify-center rounded transition-colors ${
+                                                leftMenuOpen
+                                                    ? isLight ? "bg-slate-300 text-slate-900" : "bg-slate-700 text-white"
+                                                    : isLight ? "hover:bg-slate-200 text-slate-600" : "hover:bg-slate-800 text-slate-400 hover:text-white"
+                                            }`}
+                                            title="Daha fazla seçenek"
+                                        >
+                                            <MoreVertical className="w-3.5 h-3.5" />
+                                        </button>
+
+                                        {/* Dropdown Popover */}
+                                        {leftMenuOpen && (
+                                            <div className={`absolute right-0 top-full mt-1 w-56 rounded-lg border shadow-xl py-1 z-50 text-xs ${
+                                                isLight 
+                                                    ? "bg-white border-slate-200 text-slate-800" 
+                                                    : "bg-slate-900 border-slate-700 text-slate-200"
+                                            }`}>
+                                                {selectedColab !== "none" ? (
+                                                    <>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                handleCopyColab(selectedColab === "all" ? allColabsMergedCode : (currentColabNotebook?.mergedCode || ""));
+                                                                setLeftMenuOpen(false);
+                                                            }}
+                                                            className={`w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors ${
+                                                                copiedColab ? "text-emerald-500 font-bold" : ""
+                                                            }`}
+                                                        >
+                                                            {copiedColab ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-amber-500" />}
+                                                            <span>{copiedColab ? "Kopyalandı!" : "Tüm Python Kodunu Kopyala"}</span>
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setColabViewMode(colabViewMode === "notebook" ? "code" : "notebook");
+                                                                setLeftMenuOpen(false);
+                                                            }}
+                                                            className="w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                                        >
+                                                            <FileCode className="w-3.5 h-3.5 text-indigo-500" />
+                                                            <span>{colabViewMode === "notebook" ? "Ham Kod Görünümüne Geç" : "Notebook Kartlarına Geç"}</span>
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setSelectedColab("none");
+                                                                setLeftMenuOpen(false);
+                                                            }}
+                                                            className="w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-t border-slate-200 dark:border-slate-800 text-blue-500 font-medium"
+                                                        >
+                                                            <FileText className="w-3.5 h-3.5" />
+                                                            <span>Docs Planına Geri Dön</span>
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setIsEditingDocUrl(!isEditingDocUrl);
+                                                                setLeftMenuOpen(false);
+                                                            }}
+                                                            className="w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                                        >
+                                                            <Edit3 className="w-3.5 h-3.5 text-indigo-500" />
+                                                            <span>{isEditingDocUrl ? "Link Düzenlemeyi Kapat" : "Docs Linkini Düzenle"}</span>
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                handleCopyAllDocUrls();
+                                                                setLeftMenuOpen(false);
+                                                            }}
+                                                            className="w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                                        >
+                                                            <Copy className="w-3.5 h-3.5 text-slate-500" />
+                                                            <span>Tüm Docs Linklerini Kopyala</span>
+                                                        </button>
+                                                    </>
+                                                )}
+
+                                                <div className="border-t border-slate-200 dark:border-slate-800 my-1" />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setExpandMode(expandMode === "left" ? "none" : "left");
+                                                        setLeftMenuOpen(false);
+                                                    }}
+                                                    className="w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                                >
+                                                    <Columns className="w-3.5 h-3.5 text-slate-500" />
+                                                    <span>{expandMode === "left" ? "Yan Yana Görünüme Dön" : "Bu Paneli Tam Ekran Yap"}</span>
+                                                </button>
+                                            </div>
                                         )}
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsEditingDocUrl(!isEditingDocUrl)}
-                                            className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded transition-colors ${
-                                                isLight 
-                                                    ? "bg-indigo-50 text-indigo-700 hover:bg-indigo-100" 
-                                                    : "bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20"
-                                            }`}
-                                            title="Bu haftanın Google Docs linkini değiştir veya ekle"
-                                        >
-                                            <Edit3 className="w-3 h-3" />
-                                            <span>Link Düzenle</span>
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={handleCopyAllDocUrls}
-                                            className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded transition-colors ${
-                                                isLight 
-                                                    ? "bg-slate-200 text-slate-700 hover:bg-slate-300" 
-                                                    : "bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700"
-                                            }`}
-                                            title="Eklediğiniz tüm Google Docs linklerini kopyalar"
-                                        >
-                                            <Copy className="w-3 h-3 text-indigo-400" />
-                                            <span>Tüm Linkleri Kopyala</span>
-                                        </button>
                                     </div>
-                                )}
+                                </div>
                             </div>
 
                             {/* Google Docs URL Edit Drawer/Input */}
@@ -1305,8 +1304,8 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                                     )}
                                 </div>
 
-                                {/* Right Actions: Copy, Terminal, Edit/Save */}
-                                <div className="flex items-center gap-1.5 shrink-0">
+                                {/* Right Actions: Copy, Terminal, Save/Cancel, and 3-Dots Menu */}
+                                <div className="flex items-center gap-1.5 shrink-0 relative">
                                     {!isEditingContent && currentWeekPlan.tabs && currentWeekPlan.tabs.length > 0 && (
                                         <>
                                             <button
@@ -1322,7 +1321,7 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                                                 {copied ? (
                                                     <>
                                                         <Check className="w-3 h-3 text-emerald-500" />
-                                                        <span className="text-emerald-500">Kopyalandı</span>
+                                                        <span className="text-emerald-500 font-bold">Kopyalandı</span>
                                                     </>
                                                 ) : (
                                                     <>
@@ -1353,26 +1352,13 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                                         </>
                                     )}
 
-                                    {/* Edit Button */}
-                                    {!isEditingContent ? (
-                                        <Button
-                                            size="sm"
-                                            onClick={handleStartEditing}
-                                            className={`h-7 px-2 text-[11px] font-medium transition-colors ${
-                                                isLight 
-                                                    ? "bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200" 
-                                                    : "bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/40"
-                                            }`}
-                                        >
-                                            <Edit3 className="w-3 h-3 mr-1" />
-                                            <span>Düzenle</span>
-                                        </Button>
-                                    ) : (
+                                    {/* Edit Mode Save & Cancel Buttons */}
+                                    {isEditingContent && (
                                         <div className="flex items-center gap-1">
                                             <Button
                                                 size="sm"
                                                 onClick={handleSaveContent}
-                                                className="h-7 px-2.5 text-[11px] font-medium bg-emerald-600 hover:bg-emerald-500 text-white"
+                                                className="h-7 px-2.5 text-[11px] font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs"
                                             >
                                                 <Save className="w-3 h-3 mr-1" />
                                                 <span>Kaydet</span>
@@ -1382,11 +1368,79 @@ export function LessonPlans({ onBackToHub, onSwitchToMesai }: LessonPlansProps) 
                                                 size="sm"
                                                 onClick={() => setIsEditingContent(false)}
                                                 className={`h-7 px-2 text-[11px] ${isLight ? "text-slate-600 hover:text-slate-900" : "text-slate-400 hover:text-white"}`}
+                                                title="İptal et"
                                             >
                                                 <X className="w-3 h-3" />
                                             </Button>
                                         </div>
                                     )}
+
+                                    {/* 3-Dots Menu Trigger */}
+                                    <div className="relative" data-dropdown="right-menu">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setRightMenuOpen(!rightMenuOpen);
+                                                setLeftMenuOpen(false);
+                                            }}
+                                            className={`w-7 h-7 flex items-center justify-center rounded transition-colors ${
+                                                rightMenuOpen
+                                                    ? isLight ? "bg-slate-300 text-slate-900" : "bg-slate-700 text-white"
+                                                    : isLight ? "hover:bg-slate-200 text-slate-600" : "hover:bg-slate-800 text-slate-400 hover:text-white"
+                                            }`}
+                                            title="Daha fazla seçenek"
+                                        >
+                                            <MoreVertical className="w-3.5 h-3.5" />
+                                        </button>
+
+                                        {/* Dropdown Popover */}
+                                        {rightMenuOpen && (
+                                            <div className={`absolute right-0 top-full mt-1 w-52 rounded-lg border shadow-xl py-1 z-50 text-xs ${
+                                                isLight 
+                                                    ? "bg-white border-slate-200 text-slate-800" 
+                                                    : "bg-slate-900 border-slate-700 text-slate-200"
+                                            }`}>
+                                                {!isEditingContent ? (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            handleStartEditing();
+                                                            setRightMenuOpen(false);
+                                                        }}
+                                                        className="w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                                    >
+                                                        <Edit3 className="w-3.5 h-3.5 text-indigo-500" />
+                                                        <span>İçeriği & Sekmeleri Düzenle</span>
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            handleResetContent();
+                                                            setRightMenuOpen(false);
+                                                        }}
+                                                        className="w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-rose-500 font-medium"
+                                                    >
+                                                        <RotateCcw className="w-3.5 h-3.5" />
+                                                        <span>Varsayılana Sıfırla</span>
+                                                    </button>
+                                                )}
+
+                                                <div className="border-t border-slate-200 dark:border-slate-800 my-1" />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setExpandMode(expandMode === "right" ? "none" : "right");
+                                                        setRightMenuOpen(false);
+                                                    }}
+                                                    className="w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                                >
+                                                    <Columns className="w-3.5 h-3.5 text-slate-500" />
+                                                    <span>{expandMode === "right" ? "Yan Yana Görünüme Dön" : "Bu Paneli Tam Ekran Yap"}</span>
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
 
                             </div>
