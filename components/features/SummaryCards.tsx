@@ -223,12 +223,13 @@ export function SummaryCards() {
                                 Yatan Brüt
                             </label>
                             <div className="relative">
-                                <span className="absolute left-2.5 top-1.5 text-slate-500 text-xs font-bold">₺</span>
+                                <span className="absolute left-2.5 top-1.5 text-slate-700 text-xs font-bold">₺</span>
                                 <Input
                                     type="number"
                                     value={grossInput}
                                     onChange={(e) => handleGrossChange(e.target.value)}
-                                    className="h-8 pl-6 text-xs font-bold bg-slate-50 border-slate-300 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-md"
+                                    className="h-8 pl-6 text-xs font-black bg-white border-slate-300 !text-slate-950 placeholder:text-slate-400 focus:bg-white focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 rounded-md shadow-2xs"
+                                    style={{ color: '#020617' }}
                                     placeholder="0.00"
                                 />
                             </div>
@@ -238,12 +239,13 @@ export function SummaryCards() {
                                 Yatan Net
                             </label>
                             <div className="relative">
-                                <span className="absolute left-2.5 top-1.5 text-emerald-600 text-xs font-bold">₺</span>
+                                <span className="absolute left-2.5 top-1.5 text-emerald-800 text-xs font-bold">₺</span>
                                 <Input
                                     type="number"
                                     value={netInput}
                                     onChange={(e) => handleNetChange(e.target.value)}
-                                    className="h-8 pl-6 text-xs font-bold bg-emerald-50/70 border-emerald-300 text-emerald-950 placeholder:text-emerald-400 focus:bg-white focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500 rounded-md"
+                                    className="h-8 pl-6 text-xs font-black bg-white border-emerald-300 !text-slate-950 placeholder:text-emerald-600 focus:bg-white focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 rounded-md shadow-2xs"
+                                    style={{ color: '#020617' }}
                                     placeholder="0.00"
                                 />
                             </div>

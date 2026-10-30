@@ -10,41 +10,76 @@ import { formatCurrency } from "@/lib/utils";
 import { useShiftStore } from "@/lib/store";
 
 export function SalaryCalculatorView() {
-    const { shifts } = useShiftStore();
+    const { shifts, actualSalaries, filterYear, setActualSalary } = useShiftStore();
+    const currentYear = filterYear || new Date().getFullYear();
 
-    // State for 12 months of gross salary inputs
-    const [monthlyGrosses, setMonthlyGrosses] = useState<number[]>(Array(12).fill(0));
-    const [autoFilled, setAutoFilled] = useState(false);
+    // Compute base monthly grosses prioritizing actualSalaries (Yatan Brüt from DB) over shift calculations
+    const computedGrosses = useMemo(() => {
+        const arr = Array(12).fill(0);
 
-    // Initialize with data from store
-    useEffect(() => {
-        if (shifts.length > 0 && !autoFilled) {
-            const currentYear = new Date().getFullYear();
-            const newGrosses = [...monthlyGrosses];
+        // 1. Calculate shift totals for each month of the current year
+        shifts.forEach((shift) => {
+            const dateStr = shift.date.includes('T') ? shift.date : shift.date + 'T12:00:00';
+            const d = new Date(dateStr);
+            if (d.getFullYear() === currentYear) {
+                const m = d.getMonth();
+                arr[m] += (shift.totalSalary || 0);
+            }
+        });
 
-            // Aggregate shifts by month for the current year
-            const monthlyData = shifts.reduce((acc, shift) => {
-                const date = new Date(shift.date);
-                if (date.getFullYear() === currentYear) {
-                    const monthIndex = date.getMonth(); // 0-11
-                    acc[monthIndex] = (acc[monthIndex] || 0) + (shift.totalSalary || 0);
-                }
-                return acc;
-            }, {} as Record<number, number>);
-
-            Object.entries(monthlyData).forEach(([monthIndex, totalGross]) => {
-                newGrosses[Number(monthIndex)] = totalGross;
-            });
-
-            setMonthlyGrosses(newGrosses);
-            setAutoFilled(true);
+        // 2. Override with actual "Yatan Brüt" from database if entered
+        for (let m = 0; m < 12; m++) {
+            const key = `${currentYear}-${m}`;
+            const record = actualSalaries[key];
+            if (record && record.gross !== undefined && record.gross !== null && record.gross > 0) {
+                arr[m] = record.gross;
+            }
         }
-    }, [shifts, autoFilled, monthlyGrosses]);
 
-    const handleGrossChange = (index: number, value: string) => {
+        return arr;
+    }, [shifts, actualSalaries, currentYear]);
+
+    // State for 12 months of gross salary inputs (keeps live table responsive)
+    const [monthlyGrosses, setMonthlyGrosses] = useState<number[]>(computedGrosses);
+
+    // Sync whenever database/store actualSalaries or shifts change
+    useEffect(() => {
+        setMonthlyGrosses(computedGrosses);
+    }, [computedGrosses]);
+
+    const handleGrossChange = (monthIndex: number, value: string) => {
+        const valNum = value === "" ? 0 : Number(value);
         const newGrosses = [...monthlyGrosses];
-        newGrosses[index] = Number(value);
+        newGrosses[monthIndex] = valNum;
         setMonthlyGrosses(newGrosses);
+
+        // Save to database & store, keeping Aylık Takip synced!
+        const key = `${currentYear}-${monthIndex}`;
+        const existingNet = actualSalaries[key]?.net;
+        setActualSalary(currentYear, monthIndex, {
+            gross: valNum > 0 ? valNum : undefined,
+            net: existingNet
+        });
+    };
+
+    const handleResetToShifts = () => {
+        const arr = Array(12).fill(0);
+        shifts.forEach((shift) => {
+            const dateStr = shift.date.includes('T') ? shift.date : shift.date + 'T12:00:00';
+            const d = new Date(dateStr);
+            if (d.getFullYear() === currentYear) {
+                const m = d.getMonth();
+                arr[m] += (shift.totalSalary || 0);
+            }
+        });
+        setMonthlyGrosses(arr);
+        arr.forEach((grossVal, m) => {
+            const key = `${currentYear}-${m}`;
+            setActualSalary(currentYear, m, {
+                gross: grossVal > 0 ? grossVal : undefined,
+                net: actualSalaries[key]?.net
+            });
+        });
     };
 
     const results = useMemo(() => {
@@ -74,11 +109,12 @@ export function SalaryCalculatorView() {
                     <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => { setAutoFilled(false); }}
+                        onClick={handleResetToShifts}
                         className="text-xs font-semibold text-slate-700 border-slate-300 hover:bg-slate-50 shadow-2xs h-8"
+                        title="Tüm ayları girilen Yatan Brütler yerine mesai toplamlarıyla doldurur"
                     >
                         <RefreshCw className="w-3.5 h-3.5 mr-1.5 text-indigo-500" />
-                        Mevcut Mesailerle Doldur
+                        Mesai Verileriyle Sıfırla
                     </Button>
                 </div>
             </div>
@@ -162,12 +198,13 @@ export function SalaryCalculatorView() {
                                         <td className="px-3 py-2 font-bold text-slate-900 whitespace-nowrap">{row.monthName}</td>
                                         <td className="px-3 py-2 text-right">
                                             <div className="relative max-w-[105px] ml-auto">
-                                                <span className="absolute left-2 top-1.5 text-slate-400 text-xs font-bold">₺</span>
+                                                <span className="absolute left-2.5 top-1.5 text-slate-700 text-xs font-bold">₺</span>
                                                 <Input
                                                     type="number"
                                                     value={row.grossSalary || ''}
                                                     onChange={(e) => handleGrossChange(row.month - 1, e.target.value)}
-                                                    className="pl-5 h-7 text-xs font-bold text-right border-slate-300 focus:border-indigo-500 bg-white text-slate-900 shadow-2xs rounded"
+                                                    className="pl-6 h-7 text-xs font-black text-right border-slate-300 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white !text-slate-950 shadow-2xs rounded"
+                                                    style={{ color: '#020617' }}
                                                     placeholder="0"
                                                 />
                                             </div>
